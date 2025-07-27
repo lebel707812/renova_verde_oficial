@@ -1,7 +1,7 @@
 import { Article } from '@/types';
 
-// Dados mock para artigos em destaque
 // TODO: Integrar com API de artigos do blog
+// Substituir dados mock por chamada à API
 export const FEATURED_ARTICLES: Article[] = [
   {
     id: '1',
@@ -11,7 +11,7 @@ export const FEATURED_ARTICLES: Article[] = [
     imageUrl: '/images/jardim-vertical-placeholder.jpg',
     slug: 'jardim-vertical-sustentavel',
     publishedAt: '2024-01-15',
-    readTime: 8,
+    readTime: 8
   },
   {
     id: '2',
@@ -21,7 +21,7 @@ export const FEATURED_ARTICLES: Article[] = [
     imageUrl: '/images/energia-solar-placeholder.jpg',
     slug: 'energia-solar-residencial-guia',
     publishedAt: '2024-01-10',
-    readTime: 12,
+    readTime: 12
   },
   {
     id: '3',
@@ -29,10 +29,19 @@ export const FEATURED_ARTICLES: Article[] = [
     excerpt: 'Conheça os melhores materiais ecológicos para reformas que respeitam o meio ambiente sem abrir mão do design.',
     category: 'Reforma Ecológica',
     imageUrl: '/images/reforma-ecologica-placeholder.jpg',
-    slug: 'materiais-sustentaveis-reforma',
+    slug: 'reforma-ecologica-materiais-sustentaveis',
     publishedAt: '2024-01-05',
-    readTime: 10,
-  },
+    readTime: 10
+  }
+];
+
+export const ARTICLE_CATEGORIES = [
+  'Jardinagem',
+  'Energia Renovável', 
+  'Reforma Ecológica',
+  'Compostagem',
+  'Economia de Água',
+  'Sustentabilidade'
 ];
 
 // Configurações do site
@@ -60,16 +69,6 @@ export const SOCIAL_LINKS = {
   youtube: 'https://youtube.com/@renovaverdehub',
   linkedin: 'https://linkedin.com/company/renovaverdehub',
 };
-
-// Categorias de artigos
-export const ARTICLE_CATEGORIES = [
-  'Jardinagem',
-  'Energia Renovável',
-  'Reforma Ecológica',
-  'Compostagem',
-  'Economia de Água',
-  'Sustentabilidade',
-] as const;
 
 export type ArticleCategory = typeof ARTICLE_CATEGORIES[number];
 
