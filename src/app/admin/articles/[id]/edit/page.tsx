@@ -35,7 +35,7 @@ export default function EditArticlePage() {
       } else {
         setError('Artigo não encontrado');
       }
-    } catch (err) {
+    } catch {
       setError('Erro ao carregar artigo');
     } finally {
       setIsLoading(false);

@@ -38,7 +38,7 @@ export default function NewsletterSignup({
       
       // Reset success state after 3 seconds
       setTimeout(() => setIsSuccess(false), 3000);
-    } catch (err) {
+    } catch {
       setError('Erro ao cadastrar email. Tente novamente.');
     } finally {
       setIsLoading(false);

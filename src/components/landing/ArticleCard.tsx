@@ -4,7 +4,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { ArticleCardProps } from '@/types';
 
-export default function ArticleCard({ article, className = '' }: ArticleCardProps) {
+export default function ArticleCard({ article, className = '', style }: ArticleCardProps) {
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('pt-BR', {
@@ -27,7 +27,10 @@ export default function ArticleCard({ article, className = '' }: ArticleCardProp
   };
 
   return (
-    <article className={`group bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 overflow-hidden border border-gray-100 hover:border-primary-200 transform hover:-translate-y-2 ${className}`}>
+    <article 
+      className={`group bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 overflow-hidden border border-gray-100 hover:border-primary-200 transform hover:-translate-y-2 ${className}`}
+      style={style}
+    >
       {/* Image Container */}
       <div className="relative h-48 sm:h-56 overflow-hidden">
         <Image

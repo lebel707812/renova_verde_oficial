@@ -23,7 +23,16 @@ export default function FeaturedArticles({ className = '' }: FeaturedArticlesPro
       if (response.ok) {
         const data = await response.json();
         // Converter dados da API para o formato esperado pelo componente
-        const formattedArticles: Article[] = data.map((article: any) => ({
+        const formattedArticles: Article[] = data.map((article: {
+          id: number;
+          title: string;
+          excerpt?: string;
+          category: string;
+          imageUrl?: string;
+          slug: string;
+          createdAt: string;
+          readTime: number;
+        }) => ({
           id: article.id.toString(),
           title: article.title,
           excerpt: article.excerpt || '',

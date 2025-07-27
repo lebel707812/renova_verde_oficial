@@ -11,7 +11,7 @@ export async function GET(request: NextRequest) {
     const published = searchParams.get('published');
     const featured = searchParams.get('featured');
 
-    let where: any = {};
+    const where: Record<string, unknown> = {};
 
     if (category) {
       where.category = category;

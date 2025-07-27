@@ -32,7 +32,7 @@ export default function AdminDashboard() {
       } else {
         setError('Erro ao carregar artigos');
       }
-    } catch (err) {
+    } catch {
       setError('Erro de conexão');
     } finally {
       setIsLoading(false);
@@ -54,7 +54,7 @@ export default function AdminDashboard() {
       } else {
         setError('Erro ao excluir artigo');
       }
-    } catch (err) {
+    } catch {
       setError('Erro de conexão');
     }
   };

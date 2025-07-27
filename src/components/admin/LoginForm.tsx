@@ -31,7 +31,7 @@ export default function LoginForm() {
       } else {
         setError(data.error || 'Erro ao fazer login');
       }
-    } catch (err) {
+    } catch {
       setError('Erro de conexão');
     } finally {
       setIsLoading(false);

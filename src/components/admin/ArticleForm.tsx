@@ -2,6 +2,7 @@
 
 import { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { ARTICLE_CATEGORIES } from '@/lib/constants';
 
 interface Article {
@@ -64,7 +65,7 @@ export default function ArticleForm({ article, isEditing = false }: ArticleFormP
       } else {
         setError(data.error || 'Erro ao fazer upload da imagem');
       }
-    } catch (err) {
+    } catch {
       setError('Erro ao fazer upload da imagem');
     } finally {
       setIsUploading(false);
@@ -100,7 +101,7 @@ export default function ArticleForm({ article, isEditing = false }: ArticleFormP
       } else {
         setError(data.error || 'Erro ao salvar artigo');
       }
-    } catch (err) {
+    } catch {
       setError('Erro de conexão');
     } finally {
       setIsLoading(false);
@@ -187,9 +188,11 @@ export default function ArticleForm({ article, isEditing = false }: ArticleFormP
               
               {formData.imageUrl && (
                 <div className="flex items-center space-x-2">
-                  <img
+                  <Image
                     src={formData.imageUrl}
                     alt="Preview"
+                    width={64}
+                    height={64}
                     className="w-16 h-16 object-cover rounded-lg"
                   />
                   <button

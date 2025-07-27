@@ -22,6 +22,7 @@ export interface NewsletterSignupProps {
 export interface ArticleCardProps {
   article: Article;
   className?: string;
+  style?: React.CSSProperties;
 }
 
 export interface HeroSectionProps {
