@@ -3,11 +3,16 @@ export interface Article {
   id: string;
   title: string;
   excerpt: string;
+  content: string;
   category: string;
   imageUrl: string;
   slug: string;
   publishedAt: string;
   readTime: number;
+  author: {
+    name: string;
+    avatar: string;
+  };
 }
 
 // Tipos para newsletter
