@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import Header from '@/components/layout/Header';
+import MainLayout from '@/components/layout/MainLayout';
 import { Article } from '@/types';
 
 // Mock data - substituir por API real
@@ -264,10 +264,9 @@ export default function ArticlePage({ params }: { params: { slug: string } }) {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Header />
-      
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <MainLayout>
+      <div className="bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
           {/* Conteúdo Principal */}
           <div className="lg:col-span-3">
@@ -564,7 +563,7 @@ export default function ArticlePage({ params }: { params: { slug: string } }) {
           </div>
         </div>
       </div>
-    </div>
+    </MainLayout>
   );
 }
 

@@ -4,6 +4,7 @@ import { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { ARTICLE_CATEGORIES } from '@/lib/constants';
+import RichTextEditor from './RichTextEditor';
 
 interface Article {
   id?: number;
@@ -40,6 +41,10 @@ export default function ArticleForm({ article, isEditing = false }: ArticleFormP
       ...prev,
       [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : value
     }));
+  };
+
+  const handleContentChange = (content: string) => {
+    setFormData(prev => ({ ...prev, content }));
   };
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -109,12 +114,15 @@ export default function ArticleForm({ article, isEditing = false }: ArticleFormP
   };
 
   return (
-    <div className="max-w-4xl mx-auto">
+    <div className="max-w-6xl mx-auto">
       <div className="bg-white shadow-sm rounded-lg">
         <div className="px-6 py-4 border-b border-gray-200">
           <h2 className="text-lg font-medium text-gray-900">
             {isEditing ? 'Editar Artigo' : 'Novo Artigo'}
           </h2>
+          <p className="text-sm text-gray-600 mt-1">
+            Use o editor abaixo para criar conteúdo rico com formatação, imagens e links.
+          </p>
         </div>
 
         <form className="p-6 space-y-6">
@@ -130,43 +138,62 @@ export default function ArticleForm({ article, isEditing = false }: ArticleFormP
               required
               value={formData.title}
               onChange={handleInputChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-primary-500 focus:border-primary-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-primary-500 focus:border-primary-500 text-lg"
               placeholder="Digite o título do artigo"
             />
           </div>
 
-          {/* Categoria */}
-          <div>
-            <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-2">
-              Categoria *
-            </label>
-            <select
-              id="category"
-              name="category"
-              required
-              value={formData.category}
-              onChange={handleInputChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-primary-500 focus:border-primary-500"
-            >
-              {ARTICLE_CATEGORIES.map(category => (
-                <option key={category} value={category}>
-                  {category}
-                </option>
-              ))}
-            </select>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Categoria */}
+            <div>
+              <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-2">
+                Categoria *
+              </label>
+              <select
+                id="category"
+                name="category"
+                required
+                value={formData.category}
+                onChange={handleInputChange}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-primary-500 focus:border-primary-500"
+              >
+                {ARTICLE_CATEGORIES.map(category => (
+                  <option key={category} value={category}>
+                    {category}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Status de Publicação */}
+            <div className="flex items-center justify-center">
+              <div className="flex items-center">
+                <input
+                  type="checkbox"
+                  id="isPublished"
+                  name="isPublished"
+                  checked={formData.isPublished}
+                  onChange={handleInputChange}
+                  className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+                />
+                <label htmlFor="isPublished" className="ml-2 block text-sm text-gray-900">
+                  Publicar artigo imediatamente
+                </label>
+              </div>
+            </div>
           </div>
 
           {/* Upload de Imagem */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Imagem do Artigo
+              Imagem de Destaque
             </label>
             <div className="flex items-center space-x-4">
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
                 disabled={isUploading}
-                className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
+                className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 transition-colors"
               >
                 {isUploading ? (
                   <>
@@ -191,14 +218,15 @@ export default function ArticleForm({ article, isEditing = false }: ArticleFormP
                   <Image
                     src={formData.imageUrl}
                     alt="Preview"
-                    width={64}
-                    height={64}
-                    className="w-16 h-16 object-cover rounded-lg"
+                    width={80}
+                    height={80}
+                    className="w-20 h-20 object-cover rounded-lg border border-gray-200"
                   />
                   <button
                     type="button"
                     onClick={() => setFormData(prev => ({ ...prev, imageUrl: '' }))}
-                    className="text-red-600 hover:text-red-800"
+                    className="text-red-600 hover:text-red-800 p-1 rounded-full hover:bg-red-50 transition-colors"
+                    title="Remover imagem"
                   >
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -215,52 +243,47 @@ export default function ArticleForm({ article, isEditing = false }: ArticleFormP
               onChange={handleImageUpload}
               className="hidden"
             />
+            
+            <p className="text-xs text-gray-500 mt-1">
+              Recomendado: imagem em formato 16:9 com pelo menos 1200x675 pixels
+            </p>
           </div>
 
-          {/* Conteúdo */}
+          {/* Editor de Conteúdo */}
           <div>
-            <label htmlFor="content" className="block text-sm font-medium text-gray-700 mb-2">
-              Conteúdo *
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Conteúdo do Artigo *
             </label>
-            <textarea
-              id="content"
-              name="content"
-              required
-              rows={12}
-              value={formData.content}
-              onChange={handleInputChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-primary-500 focus:border-primary-500"
-              placeholder="Digite o conteúdo do artigo..."
-            />
-          </div>
-
-          {/* Status de Publicação */}
-          <div className="flex items-center">
-            <input
-              type="checkbox"
-              id="isPublished"
-              name="isPublished"
-              checked={formData.isPublished}
-              onChange={handleInputChange}
-              className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
-            />
-            <label htmlFor="isPublished" className="ml-2 block text-sm text-gray-900">
-              Publicar artigo
-            </label>
+            <div className="border border-gray-300 rounded-lg overflow-hidden">
+              <RichTextEditor
+                value={formData.content}
+                onChange={handleContentChange}
+                placeholder="Digite o conteúdo do artigo usando o editor rico..."
+                height="500px"
+              />
+            </div>
+            <p className="text-xs text-gray-500 mt-1">
+              Use a barra de ferramentas para formatar o texto, adicionar links, imagens e outros elementos.
+            </p>
           </div>
 
           {error && (
             <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
-              {error}
+              <div className="flex">
+                <svg className="w-5 h-5 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                {error}
+              </div>
             </div>
           )}
 
           {/* Botões */}
-          <div className="flex justify-between pt-6">
+          <div className="flex justify-between pt-6 border-t border-gray-200">
             <button
               type="button"
               onClick={() => router.back()}
-              className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+              className="px-6 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors"
             >
               Cancelar
             </button>
@@ -270,7 +293,7 @@ export default function ArticleForm({ article, isEditing = false }: ArticleFormP
                 type="button"
                 onClick={(e) => handleSubmit(e, true)}
                 disabled={isLoading}
-                className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
+                className="px-6 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 transition-colors"
               >
                 Salvar como Rascunho
               </button>
@@ -279,9 +302,19 @@ export default function ArticleForm({ article, isEditing = false }: ArticleFormP
                 type="button"
                 onClick={(e) => handleSubmit(e, false)}
                 disabled={isLoading}
-                className="px-4 py-2 bg-primary-900 text-white rounded-lg text-sm font-medium hover:bg-primary-800 disabled:opacity-50"
+                className="px-6 py-2 bg-primary-900 text-white rounded-lg text-sm font-medium hover:bg-primary-800 disabled:opacity-50 transition-colors"
               >
-                {isLoading ? 'Salvando...' : (isEditing ? 'Atualizar' : 'Publicar')}
+                {isLoading ? (
+                  <>
+                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 inline" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Salvando...
+                  </>
+                ) : (
+                  isEditing ? 'Atualizar Artigo' : 'Publicar Artigo'
+                )}
               </button>
             </div>
           </div>
