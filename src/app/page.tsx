@@ -6,11 +6,11 @@ import NewsletterSection from '@/components/landing/NewsletterSection';
 export default function Home() {
   return (
     <MainLayout>
-      {/* Hero Section */}
-      <HeroSection />
-      
       {/* Featured Articles Section */}
       <FeaturedArticles />
+
+      {/* Hero Section */}
+      <HeroSection />
       
       {/* Newsletter Section */}
       <NewsletterSection />

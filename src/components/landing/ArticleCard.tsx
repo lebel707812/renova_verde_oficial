@@ -84,7 +84,7 @@ export default function ArticleCard({ article, className = '', style }: ArticleC
 
         {/* Read More Link */}
         <Link
-          href={`/blog/${article.slug}`}
+          href={`/artigos/${article.slug}`}
           className="inline-flex items-center text-primary-900 font-semibold text-sm hover:text-primary-700 transition-colors duration-300 group/link"
         >
           <span>Ler artigo completo</span>

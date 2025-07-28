@@ -46,7 +46,7 @@ export default function HeroSection({ className = '' }: HeroSectionProps) {
           {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
             <Link
-              href="/blog"
+              href="/artigos"
               className="group inline-flex items-center px-8 py-4 bg-primary-900 hover:bg-primary-800 text-white font-semibold rounded-lg transition-all duration-300 transform hover:scale-105 hover:shadow-xl border border-primary-700"
             >
               <span>Explore Nossos Artigos</span>
@@ -60,7 +60,10 @@ export default function HeroSection({ className = '' }: HeroSectionProps) {
               </svg>
             </Link>
 
-            <button className="group inline-flex items-center px-8 py-4 bg-white/10 hover:bg-white/20 text-white font-semibold rounded-lg transition-all duration-300 backdrop-blur-sm border border-white/20 hover:border-white/30">
+            <Link
+              href="#newsletter-section"
+              className="group inline-flex items-center px-8 py-4 bg-white/10 hover:bg-white/20 text-white font-semibold rounded-lg transition-all duration-300 backdrop-blur-sm border border-white/20 hover:border-white/30"
+            >
               <svg 
                 className="mr-2 w-5 h-5" 
                 fill="none" 
@@ -70,7 +73,7 @@ export default function HeroSection({ className = '' }: HeroSectionProps) {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.828 14.828a4 4 0 01-5.656 0M9 10h1m4 0h1m-6 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
               <span>Saiba Mais</span>
-            </button>
+            </Link>
           </div>
 
           {/* Stats */}

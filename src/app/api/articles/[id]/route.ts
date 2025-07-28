@@ -6,20 +6,13 @@ import { generateSlug, calculateReadTime, extractExcerpt, isValidCategory } from
 // GET /api/articles/[id] - Buscar artigo por ID
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: { slug: string } }
 ) {
   try {
-    const id = parseInt(params.id);
-    
-    if (isNaN(id)) {
-      return NextResponse.json(
-        { error: 'ID inválido' },
-        { status: 400 }
-      );
-    }
+    const slug = params.slug;
 
     const article = await prisma.article.findUnique({
-      where: { id }
+      where: { slug }
     });
 
     if (!article) {

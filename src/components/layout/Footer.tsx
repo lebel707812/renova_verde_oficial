@@ -4,7 +4,7 @@ export default function Footer() {
   return (
     <footer className="bg-primary-900 text-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {/* Logo e Descrição */}
           <div className="lg:col-span-2">
             <div className="flex items-center space-x-2 mb-4">
@@ -40,7 +40,7 @@ export default function Footer() {
           </div>
 
           {/* Links Rápidos */}
-          <div>
+          <div className="lg:col-span-1 lg:col-start-3">
             <h3 className="text-lg font-semibold mb-4">Links Rápidos</h3>
             <ul className="space-y-2">
               <li>
@@ -51,11 +51,6 @@ export default function Footer() {
               <li>
                 <Link href="/artigos" className="text-gray-300 hover:text-white transition-colors duration-200">
                   Artigos
-                </Link>
-              </li>
-              <li>
-                <Link href="/categorias" className="text-gray-300 hover:text-white transition-colors duration-200">
-                  Categorias
                 </Link>
               </li>
               <li>
@@ -71,37 +66,7 @@ export default function Footer() {
             </ul>
           </div>
 
-          {/* Categorias */}
-          <div>
-            <h3 className="text-lg font-semibold mb-4">Categorias</h3>
-            <ul className="space-y-2">
-              <li>
-                <Link href="/categoria/jardinagem" className="text-gray-300 hover:text-white transition-colors duration-200">
-                  Jardinagem
-                </Link>
-              </li>
-              <li>
-                <Link href="/categoria/energia-renovavel" className="text-gray-300 hover:text-white transition-colors duration-200">
-                  Energia Renovável
-                </Link>
-              </li>
-              <li>
-                <Link href="/categoria/reformas-ecologicas" className="text-gray-300 hover:text-white transition-colors duration-200">
-                  Reformas Ecológicas
-                </Link>
-              </li>
-              <li>
-                <Link href="/categoria/reciclagem" className="text-gray-300 hover:text-white transition-colors duration-200">
-                  Reciclagem
-                </Link>
-              </li>
-              <li>
-                <Link href="/categoria/economia-domestica" className="text-gray-300 hover:text-white transition-colors duration-200">
-                  Economia Doméstica
-                </Link>
-              </li>
-            </ul>
-          </div>
+
         </div>
 
         {/* Redes Sociais e Copyright */}

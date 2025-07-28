@@ -8,7 +8,7 @@ interface NewsletterSectionProps {
 
 export default function NewsletterSection({ className = '' }: NewsletterSectionProps) {
   return (
-    <section className={`py-16 lg:py-24 bg-primary-900 relative overflow-hidden ${className}`}>
+    <section id="newsletter-section" className={`py-16 lg:py-24 bg-primary-900 relative overflow-hidden ${className}`}>
       {/* Background Pattern */}
       <div className="absolute inset-0 opacity-10">
         <div className="absolute inset-0" style={{
