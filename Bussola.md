@@ -28,8 +28,6 @@ Este documento serve como uma bússola para o desenvolvimento do projeto, regist
 
 ### Próximos Passos (Ideias e Sugestões):
 
-- **Gamificação e Engajamento:**
-    - Implementar um sistema de pontos para os usuários que leem artigos, deixam comentários e compartilham o conteúdo. Os pontos poderiam ser trocados por selos ou outros benefícios.
 
 - **Conteúdo Interativo:**
     - Criar quizzes e calculadoras interativas (ex: "Calcule sua pegada de carbono", "Qual seu perfil de sustentabilidade?") para aumentar o engajamento dos usuários.

@@ -7,11 +7,13 @@ export interface Article {
   category: string;
   imageUrl: string;
   slug: string;
-  publishedAt: string;
+  createdAt: string;
+  publishedAt?: string;
   readTime: number;
   author: {
     name: string;
     avatar: string;
+
   };
 }
 

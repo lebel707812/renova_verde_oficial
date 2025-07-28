@@ -3,13 +3,20 @@ import { prisma } from '@/lib/prisma';
 import { verifyToken } from '@/lib/auth';
 import { generateSlug, calculateReadTime, extractExcerpt, isValidCategory } from '@/lib/utils';
 
-// GET /api/articles/[id] - Buscar artigo por ID
+// GET /api/articles/[slug] - Buscar artigo por slug
 export async function GET(
   request: NextRequest,
   { params }: { params: { slug: string } }
 ) {
   try {
-    const slug = params.slug;
+    const { slug } = params;
+
+    if (!slug) {
+      return NextResponse.json(
+        { error: 'Slug é obrigatório' },
+        { status: 400 }
+      );
+    }
 
     const article = await prisma.article.findUnique({
       where: { slug }
@@ -26,16 +33,19 @@ export async function GET(
   } catch (error) {
     console.error('Error fetching article:', error);
     return NextResponse.json(
-      { error: 'Erro ao buscar artigo' },
+      { 
+        error: 'Erro ao buscar artigo',
+        details: error instanceof Error ? error.message : null
+      },
       { status: 500 }
     );
   }
 }
 
-// PUT /api/articles/[id] - Atualizar artigo
+// PUT /api/articles/[slug] - Atualizar artigo por slug
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: { slug: string } }
 ) {
   try {
     // Verificar autenticação
@@ -47,17 +57,23 @@ export async function PUT(
       );
     }
 
-    const id = parseInt(params.id);
-    
-    if (isNaN(id)) {
+    const { slug: currentSlug } = params;
+
+    // Buscar artigo atual para obter o ID
+    const existingArticle = await prisma.article.findUnique({
+      where: { slug: currentSlug }
+    });
+
+    if (!existingArticle) {
       return NextResponse.json(
-        { error: 'ID inválido' },
-        { status: 400 }
+        { error: 'Artigo não encontrado' },
+        { status: 404 }
       );
     }
 
     const { title, content, category, imageUrl, isPublished } = await request.json();
 
+    // Validações
     if (!title || !content || !category) {
       return NextResponse.json(
         { error: 'Título, conteúdo e categoria são obrigatórios' },
@@ -72,26 +88,14 @@ export async function PUT(
       );
     }
 
-    // Verificar se o artigo existe
-    const existingArticle = await prisma.article.findUnique({
-      where: { id }
-    });
-
-    if (!existingArticle) {
-      return NextResponse.json(
-        { error: 'Artigo não encontrado' },
-        { status: 404 }
-      );
-    }
-
-    const slug = generateSlug(title);
+    const newSlug = generateSlug(title);
     const readTime = calculateReadTime(content);
     const excerpt = extractExcerpt(content);
 
     // Verificar se o novo slug já existe (exceto para o artigo atual)
-    if (slug !== existingArticle.slug) {
+    if (newSlug !== currentSlug) {
       const slugExists = await prisma.article.findUnique({
-        where: { slug }
+        where: { slug: newSlug }
       });
 
       if (slugExists) {
@@ -102,34 +106,39 @@ export async function PUT(
       }
     }
 
-    const article = await prisma.article.update({
-      where: { id },
+    // Atualizar artigo
+    const updatedArticle = await prisma.article.update({
+      where: { id: existingArticle.id },
       data: {
         title,
         content,
         excerpt,
-        slug,
+        slug: newSlug,
         category,
         imageUrl: imageUrl || null,
         readTime,
-        isPublished: isPublished || false
+        isPublished: isPublished || false,
+        updatedAt: new Date()
       }
     });
 
-    return NextResponse.json(article);
+    return NextResponse.json(updatedArticle);
   } catch (error) {
     console.error('Error updating article:', error);
     return NextResponse.json(
-      { error: 'Erro ao atualizar artigo' },
+      { 
+        error: 'Erro ao atualizar artigo',
+        details: error instanceof Error ? error.message : null
+      },
       { status: 500 }
     );
   }
 }
 
-// DELETE /api/articles/[id] - Deletar artigo
+// DELETE /api/articles/[slug] - Deletar artigo por slug
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: { slug: string } }
 ) {
   try {
     // Verificar autenticação
@@ -141,18 +150,11 @@ export async function DELETE(
       );
     }
 
-    const id = parseInt(params.id);
-    
-    if (isNaN(id)) {
-      return NextResponse.json(
-        { error: 'ID inválido' },
-        { status: 400 }
-      );
-    }
+    const { slug } = params;
 
-    // Verificar se o artigo existe
+    // Primeiro encontre o artigo para obter o ID
     const existingArticle = await prisma.article.findUnique({
-      where: { id }
+      where: { slug }
     });
 
     if (!existingArticle) {
@@ -162,17 +164,20 @@ export async function DELETE(
       );
     }
 
+    // Deletar usando o ID
     await prisma.article.delete({
-      where: { id }
+      where: { id: existingArticle.id }
     });
 
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Error deleting article:', error);
     return NextResponse.json(
-      { error: 'Erro ao deletar artigo' },
+      { 
+        error: 'Erro ao deletar artigo',
+        details: error instanceof Error ? error.message : null
+      },
       { status: 500 }
     );
   }
 }
-
