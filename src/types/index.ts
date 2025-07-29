@@ -8,7 +8,7 @@ export interface Article {
   imageUrl: string;
   slug: string;
   createdAt: string;
-  publishedAt?: string;
+  publishedAt: string;
   readTime: number;
   author: {
     name: string;
