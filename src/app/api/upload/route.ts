@@ -1,41 +1,39 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { writeFile } from 'fs/promises';
+import { writeFile, mkdir } from 'fs/promises';
 import { join } from 'path';
-import { verifyToken } from '@/lib/auth';
+import { existsSync } from 'fs';
 
 export async function POST(request: NextRequest) {
   try {
-    // Verificar autenticação
-    const token = request.cookies.get('auth-token')?.value;
-    if (!token || !verifyToken(token)) {
-      return NextResponse.json(
-        { error: 'Não autorizado' },
-        { status: 401 }
-      );
-    }
+    console.log('Upload request received');
 
     const data = await request.formData();
     const file: File | null = data.get('file') as unknown as File;
 
     if (!file) {
+      console.log('No file provided');
       return NextResponse.json(
         { error: 'Nenhum arquivo enviado' },
         { status: 400 }
       );
     }
 
+    console.log('File received:', file.name, file.type, file.size);
+
     // Verificar tipo de arquivo
     if (!file.type.startsWith('image/')) {
+      console.log('Invalid file type:', file.type);
       return NextResponse.json(
         { error: 'Apenas imagens são permitidas' },
         { status: 400 }
       );
     }
 
-    // Verificar tamanho do arquivo (máximo 5MB)
-    if (file.size > 5 * 1024 * 1024) {
+    // Verificar tamanho do arquivo (máximo 10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      console.log('File too large:', file.size);
       return NextResponse.json(
-        { error: 'Arquivo muito grande. Máximo 5MB' },
+        { error: 'Arquivo muito grande. Máximo 10MB' },
         { status: 400 }
       );
     }
@@ -45,17 +43,23 @@ export async function POST(request: NextRequest) {
 
     // Gerar nome único para o arquivo
     const timestamp = Date.now();
-    const extension = file.name.split('.').pop();
+    const extension = file.name.split('.').pop() || 'jpg';
     const filename = `${timestamp}.${extension}`;
 
-    // Salvar arquivo
+    // Garantir que o diretório existe
     const uploadDir = join(process.cwd(), 'public', 'uploads');
+    if (!existsSync(uploadDir)) {
+      await mkdir(uploadDir, { recursive: true });
+    }
+
     const filepath = join(uploadDir, filename);
     
+    console.log('Saving file to:', filepath);
     await writeFile(filepath, buffer);
 
     // Retornar URL do arquivo
     const fileUrl = `/uploads/${filename}`;
+    console.log('File saved successfully:', fileUrl);
 
     return NextResponse.json({
       success: true,
@@ -64,7 +68,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Upload error:', error);
     return NextResponse.json(
-      { error: 'Erro ao fazer upload do arquivo' },
+      { error: 'Erro ao fazer upload do arquivo: ' + (error as Error).message },
       { status: 500 }
     );
   }

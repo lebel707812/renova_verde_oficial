@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { ARTICLE_CATEGORIES } from '@/lib/constants';
@@ -19,6 +19,30 @@ interface ArticleFormProps {
   isEditing?: boolean;
 }
 
+// Componente para renderizar Markdown
+function MarkdownPreview({ content }: { content: string }) {
+  const renderMarkdown = (text: string) => {
+    return text
+      .replace(/^## (.*$)/gim, '<h2 class="text-2xl font-bold text-gray-900 mt-6 mb-4">$1</h2>')
+      .replace(/^### (.*$)/gim, '<h3 class="text-xl font-semibold text-gray-800 mt-4 mb-3">$1</h3>')
+      .replace(/\*\*(.*?)\*\*/g, '<strong class="font-semibold">$1</strong>')
+      .replace(/\*(.*?)\*/g, '<em class="italic">$1</em>')
+      .replace(/^- (.*$)/gim, '<li class="ml-4">$1</li>')
+      .replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img src="$2" alt="$1" class="max-w-full h-auto rounded-lg shadow-md my-4" />')
+      .replace(/\n\n/g, '</p><p class="mb-4">')
+      .replace(/\n/g, '<br />');
+  };
+
+  return (
+    <div 
+      className="prose prose-lg max-w-none"
+      dangerouslySetInnerHTML={{ 
+        __html: `<p class="mb-4">${renderMarkdown(content)}</p>` 
+      }}
+    />
+  );
+}
+
 export default function ArticleForm({ article, isEditing = false }: ArticleFormProps) {
   const [formData, setFormData] = useState<Article>({
     title: article?.title || '',
@@ -32,18 +56,78 @@ export default function ArticleForm({ article, isEditing = false }: ArticleFormP
   const [error, setError] = useState('');
   const [isUploading, setIsUploading] = useState(false);
   const [isUploadingContent, setIsUploadingContent] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
+  const [autoSaveStatus, setAutoSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
+  const [lastSaved, setLastSaved] = useState<Date | null>(null);
+  
   const fileInputRef = useRef<HTMLInputElement>(null);
   const contentImageInputRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const router = useRouter();
+  const autoSaveTimeoutRef = useRef<NodeJS.Timeout>();
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+  // Auto-save function
+  const autoSave = useCallback(async () => {
+    if (!formData.title.trim() || !formData.content.trim()) {
+      return;
+    }
+
+    setAutoSaveStatus('saving');
+    
+    try {
+      const url = isEditing ? `/api/articles/${article?.id}` : '/api/articles';
+      const method = isEditing ? 'PUT' : 'POST';
+
+      const response = await fetch(url, {
+        method,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          ...formData,
+          isPublished: false // Auto-save sempre como rascunho
+        }),
+      });
+
+      if (response.ok) {
+        setAutoSaveStatus('saved');
+        setLastSaved(new Date());
+        setTimeout(() => setAutoSaveStatus('idle'), 2000);
+      } else {
+        setAutoSaveStatus('error');
+        setTimeout(() => setAutoSaveStatus('idle'), 3000);
+      }
+    } catch {
+      setAutoSaveStatus('error');
+      setTimeout(() => setAutoSaveStatus('idle'), 3000);
+    }
+  }, [formData, isEditing, article?.id]);
+
+  // Trigger auto-save when content changes
+  useEffect(() => {
+    if (autoSaveTimeoutRef.current) {
+      clearTimeout(autoSaveTimeoutRef.current);
+    }
+
+    // Auto-save após 3 segundos de inatividade
+    autoSaveTimeoutRef.current = setTimeout(() => {
+      autoSave();
+    }, 3000);
+
+    return () => {
+      if (autoSaveTimeoutRef.current) {
+        clearTimeout(autoSaveTimeoutRef.current);
+      }
+    };
+  }, [formData.title, formData.content, formData.category, autoSave]);
+
+  const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
     setFormData(prev => ({
       ...prev,
       [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : value
     }));
-  };
+  }, []);
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -174,16 +258,71 @@ export default function ArticleForm({ article, isEditing = false }: ArticleFormP
     }
   };
 
+  const getAutoSaveStatusText = () => {
+    switch (autoSaveStatus) {
+      case 'saving':
+        return 'Salvando...';
+      case 'saved':
+        return `Salvo automaticamente ${lastSaved ? `às ${lastSaved.toLocaleTimeString()}` : ''}`;
+      case 'error':
+        return 'Erro ao salvar automaticamente';
+      default:
+        return '';
+    }
+  };
+
+  const getAutoSaveStatusColor = () => {
+    switch (autoSaveStatus) {
+      case 'saving':
+        return 'text-blue-600';
+      case 'saved':
+        return 'text-green-600';
+      case 'error':
+        return 'text-red-600';
+      default:
+        return 'text-gray-500';
+    }
+  };
+
   return (
-    <div className="max-w-6xl mx-auto">
+    <div className="max-w-7xl mx-auto">
       <div className="bg-white shadow-sm rounded-lg">
         <div className="px-6 py-4 border-b border-gray-200">
-          <h2 className="text-lg font-medium text-gray-900">
-            {isEditing ? 'Editar Artigo' : 'Novo Artigo'}
-          </h2>
-          <p className="text-sm text-gray-600 mt-1">
-            Preencha os campos abaixo para criar um artigo completo com texto e imagens.
-          </p>
+          <div className="flex justify-between items-center">
+            <div>
+              <h2 className="text-lg font-medium text-gray-900">
+                {isEditing ? 'Editar Artigo' : 'Novo Artigo'}
+              </h2>
+              <p className="text-sm text-gray-600 mt-1">
+                Preencha os campos abaixo para criar um artigo completo com texto e imagens.
+              </p>
+            </div>
+            <div className="flex items-center space-x-4">
+              {/* Status do Auto-save */}
+              <div className={`text-xs ${getAutoSaveStatusColor()} flex items-center`}>
+                {autoSaveStatus === 'saving' && (
+                  <svg className="animate-spin -ml-1 mr-1 h-3 w-3" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                )}
+                {getAutoSaveStatusText()}
+              </div>
+              
+              {/* Toggle Preview */}
+              <button
+                type="button"
+                onClick={() => setShowPreview(!showPreview)}
+                className={`px-3 py-1 text-xs rounded-md border transition-colors ${
+                  showPreview 
+                    ? 'bg-green-100 text-green-700 border-green-300' 
+                    : 'bg-gray-100 text-gray-700 border-gray-300 hover:bg-gray-200'
+                }`}
+              >
+                {showPreview ? '📝 Editor' : '👁️ Preview'}
+              </button>
+            </div>
+          </div>
         </div>
 
         <form className="p-6 space-y-6">
@@ -310,74 +449,81 @@ export default function ArticleForm({ article, isEditing = false }: ArticleFormP
             </p>
           </div>
 
-          {/* Editor de Conteúdo */}
+          {/* Editor de Conteúdo com Preview */}
           <div>
             <div className="flex items-center justify-between mb-2">
               <label className="block text-sm font-medium text-gray-700">
                 Conteúdo do Artigo *
               </label>
               <div className="flex space-x-2">
-                <button
-                  type="button"
-                  onClick={() => insertTextAtCursor('**Texto em negrito**')}
-                  className="px-2 py-1 text-xs bg-gray-100 hover:bg-gray-200 rounded border"
-                  title="Negrito"
-                >
-                  <strong>B</strong>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => insertTextAtCursor('*Texto em itálico*')}
-                  className="px-2 py-1 text-xs bg-gray-100 hover:bg-gray-200 rounded border"
-                  title="Itálico"
-                >
-                  <em>I</em>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => insertTextAtCursor('\n## Título da Seção\n\n')}
-                  className="px-2 py-1 text-xs bg-gray-100 hover:bg-gray-200 rounded border"
-                  title="Título"
-                >
-                  H2
-                </button>
-                <button
-                  type="button"
-                  onClick={() => insertTextAtCursor('\n### Subtítulo\n\n')}
-                  className="px-2 py-1 text-xs bg-gray-100 hover:bg-gray-200 rounded border"
-                  title="Subtítulo"
-                >
-                  H3
-                </button>
-                <button
-                  type="button"
-                  onClick={() => insertTextAtCursor('\n- Item da lista\n- Outro item\n\n')}
-                  className="px-2 py-1 text-xs bg-gray-100 hover:bg-gray-200 rounded border"
-                  title="Lista"
-                >
-                  Lista
-                </button>
-                <button
-                  type="button"
-                  onClick={() => contentImageInputRef.current?.click()}
-                  disabled={isUploadingContent}
-                  className="px-2 py-1 text-xs bg-green-100 hover:bg-green-200 text-green-700 rounded border border-green-300 disabled:opacity-50"
-                  title="Adicionar imagem no texto"
-                >
-                  {isUploadingContent ? '...' : '📷 Imagem'}
-                </button>
+                {!showPreview && (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => insertTextAtCursor('**Texto em negrito**')}
+                      className="px-2 py-1 text-xs bg-gray-100 hover:bg-gray-200 rounded border"
+                      title="Negrito"
+                    >
+                      <strong>B</strong>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => insertTextAtCursor('*Texto em itálico*')}
+                      className="px-2 py-1 text-xs bg-gray-100 hover:bg-gray-200 rounded border"
+                      title="Itálico"
+                    >
+                      <em>I</em>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => insertTextAtCursor('\n## Título da Seção\n\n')}
+                      className="px-2 py-1 text-xs bg-gray-100 hover:bg-gray-200 rounded border"
+                      title="Título"
+                    >
+                      H2
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => insertTextAtCursor('\n### Subtítulo\n\n')}
+                      className="px-2 py-1 text-xs bg-gray-100 hover:bg-gray-200 rounded border"
+                      title="Subtítulo"
+                    >
+                      H3
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => insertTextAtCursor('\n- Item da lista\n- Outro item\n\n')}
+                      className="px-2 py-1 text-xs bg-gray-100 hover:bg-gray-200 rounded border"
+                      title="Lista"
+                    >
+                      Lista
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => contentImageInputRef.current?.click()}
+                      disabled={isUploadingContent}
+                      className="px-2 py-1 text-xs bg-green-100 hover:bg-green-200 text-green-700 rounded border border-green-300 disabled:opacity-50"
+                      title="Adicionar imagem no texto"
+                    >
+                      {isUploadingContent ? '...' : '📷 Imagem'}
+                    </button>
+                  </>
+                )}
               </div>
             </div>
             
-            <textarea
-              ref={textareaRef}
-              name="content"
-              required
-              value={formData.content}
-              onChange={handleInputChange}
-              rows={20}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500 font-mono text-sm"
-              placeholder="Digite o conteúdo do artigo usando Markdown...
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              {/* Editor */}
+              <div className={showPreview ? 'hidden lg:block' : ''}>
+                <textarea
+                  ref={textareaRef}
+                  name="content"
+                  required
+                  value={formData.content}
+                  onChange={handleInputChange}
+                  rows={20}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500 font-mono text-sm"
+                  placeholder="Digite o conteúdo do artigo usando Markdown...
 
 Exemplos de formatação:
 ## Título Principal
@@ -390,7 +536,19 @@ Exemplos de formatação:
 - Outro item
 
 Para adicionar imagens no meio do texto, clique no botão 'Imagem' acima e selecione a imagem desejada."
-            />
+                />
+              </div>
+
+              {/* Preview */}
+              <div className={`${showPreview ? '' : 'hidden lg:block'} border border-gray-300 rounded-lg p-4 bg-gray-50 overflow-y-auto max-h-96`}>
+                <h4 className="text-sm font-medium text-gray-700 mb-3">Preview:</h4>
+                {formData.content ? (
+                  <MarkdownPreview content={formData.content} />
+                ) : (
+                  <p className="text-gray-500 text-sm italic">Digite algo no editor para ver o preview...</p>
+                )}
+              </div>
+            </div>
             
             <input
               ref={contentImageInputRef}
@@ -406,6 +564,7 @@ Para adicionar imagens no meio do texto, clique no botão 'Imagem' acima e selec
               <p>• Use **texto** para negrito e *texto* para itálico</p>
               <p>• Use - para listas com marcadores</p>
               <p>• Clique em "📷 Imagem" para adicionar imagens intercaladas no texto</p>
+              <p>• <strong>Auto-save:</strong> Suas alterações são salvas automaticamente a cada 3 segundos</p>
             </div>
           </div>
 

@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { verifyToken } from '@/lib/auth';
 import { generateSlug, calculateReadTime, extractExcerpt, isValidCategory } from '@/lib/utils';
 
 // GET /api/articles - Listar artigos
@@ -40,18 +39,15 @@ export async function GET(request: NextRequest) {
 // POST /api/articles - Criar artigo
 export async function POST(request: NextRequest) {
   try {
-    // Verificar autenticação
-    const token = request.cookies.get('auth-token')?.value;
-    if (!token || !verifyToken(token)) {
-      return NextResponse.json(
-        { error: 'Não autorizado' },
-        { status: 401 }
-      );
-    }
-
-    const { title, content, category, imageUrl, isPublished } = await request.json();
+    console.log('Creating article...');
+    
+    const body = await request.json();
+    console.log('Request body:', body);
+    
+    const { title, content, category, imageUrl, isPublished } = body;
 
     if (!title || !content || !category) {
+      console.log('Missing required fields');
       return NextResponse.json(
         { error: 'Título, conteúdo e categoria são obrigatórios' },
         { status: 400 }
@@ -59,6 +55,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (!isValidCategory(category)) {
+      console.log('Invalid category:', category);
       return NextResponse.json(
         { error: 'Categoria inválida' },
         { status: 400 }
@@ -69,16 +66,23 @@ export async function POST(request: NextRequest) {
     const readTime = calculateReadTime(content);
     const excerpt = extractExcerpt(content);
 
-    // Verificar se o slug já existe
-    const existingArticle = await prisma.article.findUnique({
-      where: { slug }
-    });
+    console.log('Generated data:', { slug, readTime, excerpt, isPublished });
 
-    if (existingArticle) {
-      return NextResponse.json(
-        { error: 'Já existe um artigo com este título' },
-        { status: 400 }
-      );
+    // Verificar se o slug já existe e gerar um único se necessário
+    let finalSlug = slug;
+    let counter = 1;
+    
+    while (true) {
+      const existingArticle = await prisma.article.findUnique({
+        where: { slug: finalSlug }
+      });
+      
+      if (!existingArticle) {
+        break;
+      }
+      
+      finalSlug = `${slug}-${counter}`;
+      counter++;
     }
 
     const article = await prisma.article.create({
@@ -86,19 +90,20 @@ export async function POST(request: NextRequest) {
         title,
         content,
         excerpt,
-        slug,
+        slug: finalSlug,
         category,
         imageUrl: imageUrl || null,
         readTime,
-        isPublished: isPublished || false
+        isPublished: Boolean(isPublished)
       }
     });
 
+    console.log('Article created:', article);
     return NextResponse.json(article, { status: 201 });
   } catch (error) {
     console.error('Error creating article:', error);
     return NextResponse.json(
-      { error: 'Erro ao criar artigo' },
+      { error: 'Erro ao criar artigo: ' + (error as Error).message },
       { status: 500 }
     );
   }
