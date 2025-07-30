@@ -4,7 +4,6 @@ import { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { ARTICLE_CATEGORIES } from '@/lib/constants';
-import RichTextEditor from './RichTextEditor';
 
 interface Article {
   id?: number;
@@ -32,7 +31,10 @@ export default function ArticleForm({ article, isEditing = false }: ArticleFormP
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [isUploading, setIsUploading] = useState(false);
+  const [isUploadingContent, setIsUploadingContent] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const contentImageInputRef = useRef<HTMLInputElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const router = useRouter();
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -41,10 +43,6 @@ export default function ArticleForm({ article, isEditing = false }: ArticleFormP
       ...prev,
       [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : value
     }));
-  };
-
-  const handleContentChange = (content: string) => {
-    setFormData(prev => ({ ...prev, content }));
   };
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -74,6 +72,69 @@ export default function ArticleForm({ article, isEditing = false }: ArticleFormP
       setError('Erro ao fazer upload da imagem');
     } finally {
       setIsUploading(false);
+    }
+  };
+
+  const handleContentImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploadingContent(true);
+    setError('');
+
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const response = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        // Inserir a imagem no textarea na posição do cursor
+        const textarea = textareaRef.current;
+        if (textarea) {
+          const start = textarea.selectionStart;
+          const end = textarea.selectionEnd;
+          const currentContent = formData.content;
+          const imageMarkdown = `\n\n![Imagem do artigo](${data.url})\n\n`;
+          const newContent = currentContent.substring(0, start) + imageMarkdown + currentContent.substring(end);
+          
+          setFormData(prev => ({ ...prev, content: newContent }));
+          
+          // Reposicionar o cursor após a imagem inserida
+          setTimeout(() => {
+            textarea.focus();
+            textarea.setSelectionRange(start + imageMarkdown.length, start + imageMarkdown.length);
+          }, 100);
+        }
+      } else {
+        setError(data.error || 'Erro ao fazer upload da imagem');
+      }
+    } catch {
+      setError('Erro ao fazer upload da imagem');
+    } finally {
+      setIsUploadingContent(false);
+    }
+  };
+
+  const insertTextAtCursor = (text: string) => {
+    const textarea = textareaRef.current;
+    if (textarea) {
+      const start = textarea.selectionStart;
+      const end = textarea.selectionEnd;
+      const currentContent = formData.content;
+      const newContent = currentContent.substring(0, start) + text + currentContent.substring(end);
+      
+      setFormData(prev => ({ ...prev, content: newContent }));
+      
+      setTimeout(() => {
+        textarea.focus();
+        textarea.setSelectionRange(start + text.length, start + text.length);
+      }, 100);
     }
   };
 
@@ -121,7 +182,7 @@ export default function ArticleForm({ article, isEditing = false }: ArticleFormP
             {isEditing ? 'Editar Artigo' : 'Novo Artigo'}
           </h2>
           <p className="text-sm text-gray-600 mt-1">
-            Use o editor abaixo para criar conteúdo rico com formatação, imagens e links.
+            Preencha os campos abaixo para criar um artigo completo com texto e imagens.
           </p>
         </div>
 
@@ -138,7 +199,7 @@ export default function ArticleForm({ article, isEditing = false }: ArticleFormP
               required
               value={formData.title}
               onChange={handleInputChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-primary-500 focus:border-primary-500 text-lg"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500 text-lg"
               placeholder="Digite o título do artigo"
             />
           </div>
@@ -155,7 +216,7 @@ export default function ArticleForm({ article, isEditing = false }: ArticleFormP
                 required
                 value={formData.category}
                 onChange={handleInputChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-primary-500 focus:border-primary-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500"
               >
                 {ARTICLE_CATEGORIES.map(category => (
                   <option key={category} value={category}>
@@ -174,7 +235,7 @@ export default function ArticleForm({ article, isEditing = false }: ArticleFormP
                   name="isPublished"
                   checked={formData.isPublished}
                   onChange={handleInputChange}
-                  className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+                  className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
                 />
                 <label htmlFor="isPublished" className="ml-2 block text-sm text-gray-900">
                   Publicar artigo imediatamente
@@ -183,7 +244,7 @@ export default function ArticleForm({ article, isEditing = false }: ArticleFormP
             </div>
           </div>
 
-          {/* Upload de Imagem */}
+          {/* Upload de Imagem de Destaque */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Imagem de Destaque
@@ -251,20 +312,101 @@ export default function ArticleForm({ article, isEditing = false }: ArticleFormP
 
           {/* Editor de Conteúdo */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Conteúdo do Artigo *
-            </label>
-            <div className="border border-gray-300 rounded-lg overflow-hidden">
-              <RichTextEditor
-                value={formData.content}
-                onChange={handleContentChange}
-                placeholder="Digite o conteúdo do artigo usando o editor rico..."
-                height="500px"
-              />
+            <div className="flex items-center justify-between mb-2">
+              <label className="block text-sm font-medium text-gray-700">
+                Conteúdo do Artigo *
+              </label>
+              <div className="flex space-x-2">
+                <button
+                  type="button"
+                  onClick={() => insertTextAtCursor('**Texto em negrito**')}
+                  className="px-2 py-1 text-xs bg-gray-100 hover:bg-gray-200 rounded border"
+                  title="Negrito"
+                >
+                  <strong>B</strong>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => insertTextAtCursor('*Texto em itálico*')}
+                  className="px-2 py-1 text-xs bg-gray-100 hover:bg-gray-200 rounded border"
+                  title="Itálico"
+                >
+                  <em>I</em>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => insertTextAtCursor('\n## Título da Seção\n\n')}
+                  className="px-2 py-1 text-xs bg-gray-100 hover:bg-gray-200 rounded border"
+                  title="Título"
+                >
+                  H2
+                </button>
+                <button
+                  type="button"
+                  onClick={() => insertTextAtCursor('\n### Subtítulo\n\n')}
+                  className="px-2 py-1 text-xs bg-gray-100 hover:bg-gray-200 rounded border"
+                  title="Subtítulo"
+                >
+                  H3
+                </button>
+                <button
+                  type="button"
+                  onClick={() => insertTextAtCursor('\n- Item da lista\n- Outro item\n\n')}
+                  className="px-2 py-1 text-xs bg-gray-100 hover:bg-gray-200 rounded border"
+                  title="Lista"
+                >
+                  Lista
+                </button>
+                <button
+                  type="button"
+                  onClick={() => contentImageInputRef.current?.click()}
+                  disabled={isUploadingContent}
+                  className="px-2 py-1 text-xs bg-green-100 hover:bg-green-200 text-green-700 rounded border border-green-300 disabled:opacity-50"
+                  title="Adicionar imagem no texto"
+                >
+                  {isUploadingContent ? '...' : '📷 Imagem'}
+                </button>
+              </div>
             </div>
-            <p className="text-xs text-gray-500 mt-1">
-              Use a barra de ferramentas para formatar o texto, adicionar links, imagens e outros elementos.
-            </p>
+            
+            <textarea
+              ref={textareaRef}
+              name="content"
+              required
+              value={formData.content}
+              onChange={handleInputChange}
+              rows={20}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500 font-mono text-sm"
+              placeholder="Digite o conteúdo do artigo usando Markdown...
+
+Exemplos de formatação:
+## Título Principal
+### Subtítulo
+
+**Texto em negrito**
+*Texto em itálico*
+
+- Lista de itens
+- Outro item
+
+Para adicionar imagens no meio do texto, clique no botão 'Imagem' acima e selecione a imagem desejada."
+            />
+            
+            <input
+              ref={contentImageInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handleContentImageUpload}
+              className="hidden"
+            />
+            
+            <div className="mt-2 text-xs text-gray-500 space-y-1">
+              <p><strong>Dicas de formatação:</strong></p>
+              <p>• Use ## para títulos principais e ### para subtítulos</p>
+              <p>• Use **texto** para negrito e *texto* para itálico</p>
+              <p>• Use - para listas com marcadores</p>
+              <p>• Clique em "📷 Imagem" para adicionar imagens intercaladas no texto</p>
+            </div>
           </div>
 
           {error && (
@@ -302,7 +444,7 @@ export default function ArticleForm({ article, isEditing = false }: ArticleFormP
                 type="button"
                 onClick={(e) => handleSubmit(e, false)}
                 disabled={isLoading}
-                className="px-6 py-2 bg-primary-900 text-white rounded-lg text-sm font-medium hover:bg-primary-800 disabled:opacity-50 transition-colors"
+                className="px-6 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 disabled:opacity-50 transition-colors"
               >
                 {isLoading ? (
                   <>

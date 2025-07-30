@@ -32,33 +32,6 @@ export default function RichTextEditor({
     setMounted(true);
   }, []);
 
-  // Configuração das ferramentas do editor
-  const modules = {
-    toolbar: {
-      container: [
-        [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
-        [{ 'font': [] }],
-        [{ 'size': ['small', false, 'large', 'huge'] }],
-        ['bold', 'italic', 'underline', 'strike'],
-        [{ 'color': [] }, { 'background': [] }],
-        [{ 'script': 'sub'}, { 'script': 'super' }],
-        [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-        [{ 'indent': '-1'}, { 'indent': '+1' }],
-        [{ 'direction': 'rtl' }],
-        [{ 'align': [] }],
-        ['blockquote', 'code-block'],
-        ['link', 'image', 'video'],
-        ['clean']
-      ],
-      handlers: {
-        image: imageHandler,
-      }
-    },
-    clipboard: {
-      matchVisual: false,
-    }
-  };
-
   // Handler personalizado para upload de imagens
   function imageHandler() {
     const input = document.createElement('input');
@@ -86,6 +59,10 @@ export default function RichTextEditor({
           if (quill) {
             const range = quill.getSelection();
             quill.insertEmbed(range?.index || 0, 'image', data.url);
+            
+            // Adicionar espaçamento após a imagem
+            quill.insertText(range?.index + 1 || 1, '\n\n');
+            quill.setSelection(range?.index + 2 || 2);
           }
         } else {
           alert('Erro ao fazer upload da imagem: ' + (data.error || 'Erro desconhecido'));
@@ -96,6 +73,33 @@ export default function RichTextEditor({
       }
     };
   }
+
+  // Configuração das ferramentas do editor
+  const modules = {
+    toolbar: {
+      container: [
+        [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+        [{ 'font': [] }],
+        [{ 'size': ['small', false, 'large', 'huge'] }],
+        ['bold', 'italic', 'underline', 'strike'],
+        [{ 'color': [] }, { 'background': [] }],
+        [{ 'script': 'sub'}, { 'script': 'super' }],
+        [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+        [{ 'indent': '-1'}, { 'indent': '+1' }],
+        [{ 'direction': 'rtl' }],
+        [{ 'align': [] }],
+        ['blockquote', 'code-block'],
+        ['link', 'image', 'video'],
+        ['clean']
+      ],
+      handlers: {
+        image: imageHandler,
+      }
+    },
+    clipboard: {
+      matchVisual: false,
+    }
+  };
 
   const formats = [
     'header', 'font', 'size',
@@ -202,6 +206,8 @@ export default function RichTextEditor({
           height: auto;
           border-radius: 0.5rem;
           margin: 1em 0;
+          display: block;
+          box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
         }
         
         .rich-text-editor .ql-editor a {
@@ -225,6 +231,55 @@ export default function RichTextEditor({
         
         .rich-text-editor:focus-within .ql-toolbar.ql-snow {
           border-color: #059669;
+        }
+
+        /* Melhorias para imagens */
+        .rich-text-editor .ql-editor img:hover {
+          transform: scale(1.02);
+          transition: transform 0.2s ease-in-out;
+        }
+
+        /* Estilos para diferentes tamanhos de imagem */
+        .rich-text-editor .ql-editor img[style*="width: 25%"] {
+          float: left;
+          margin: 0.5em 1em 0.5em 0;
+        }
+
+        .rich-text-editor .ql-editor img[style*="width: 50%"] {
+          margin: 1em auto;
+          display: block;
+        }
+
+        .rich-text-editor .ql-editor img[style*="width: 75%"] {
+          margin: 1em auto;
+          display: block;
+        }
+
+        /* Tooltip para botão de imagem */
+        .rich-text-editor .ql-toolbar .ql-image {
+          position: relative;
+        }
+
+        .rich-text-editor .ql-toolbar .ql-image::after {
+          content: "Clique para adicionar imagem intercalada no artigo";
+          position: absolute;
+          bottom: -30px;
+          left: 50%;
+          transform: translateX(-50%);
+          background: #374151;
+          color: white;
+          padding: 4px 8px;
+          border-radius: 4px;
+          font-size: 12px;
+          white-space: nowrap;
+          opacity: 0;
+          pointer-events: none;
+          transition: opacity 0.2s;
+          z-index: 1000;
+        }
+
+        .rich-text-editor .ql-toolbar .ql-image:hover::after {
+          opacity: 1;
         }
       `}</style>
       
