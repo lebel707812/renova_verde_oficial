@@ -1,9 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { verifyToken } from '@/lib/auth';
 import { generateSlug, calculateReadTime, extractExcerpt, isValidCategory } from '@/lib/utils';
 
-// GET /api/articles/[slug] - Buscar artigo por slug
+// Função auxiliar para determinar se é um ID numérico ou slug
+function isNumericId(param: string): boolean {
+  return /^\d+$/.test(param);
+}
+
+// GET /api/articles/[slug] - Buscar artigo por slug ou ID
 export async function GET(
   request: NextRequest,
   { params }: { params: { slug: string } }
@@ -13,14 +17,24 @@ export async function GET(
 
     if (!slug) {
       return NextResponse.json(
-        { error: 'Slug é obrigatório' },
+        { error: 'Slug ou ID é obrigatório' },
         { status: 400 }
       );
     }
 
-    const article = await prisma.article.findUnique({
-      where: { slug }
-    });
+    let article;
+
+    // Se for um número, buscar por ID, senão por slug
+    if (isNumericId(slug)) {
+      const id = parseInt(slug);
+      article = await prisma.article.findUnique({
+        where: { id }
+      });
+    } else {
+      article = await prisma.article.findUnique({
+        where: { slug }
+      });
+    }
 
     if (!article) {
       return NextResponse.json(
@@ -42,27 +56,29 @@ export async function GET(
   }
 }
 
-// PUT /api/articles/[slug] - Atualizar artigo por slug
+// PUT /api/articles/[slug] - Atualizar artigo por slug ou ID
 export async function PUT(
   request: NextRequest,
   { params }: { params: { slug: string } }
 ) {
   try {
-    // Verificar autenticação
-    const token = request.cookies.get('auth-token')?.value;
-    if (!token || !verifyToken(token)) {
-      return NextResponse.json(
-        { error: 'Não autorizado' },
-        { status: 401 }
-      );
-    }
+    console.log('Updating article with param:', params.slug);
 
-    const { slug: currentSlug } = params;
+    const { slug: param } = params;
 
     // Buscar artigo atual para obter o ID
-    const existingArticle = await prisma.article.findUnique({
-      where: { slug: currentSlug }
-    });
+    let existingArticle;
+
+    if (isNumericId(param)) {
+      const id = parseInt(param);
+      existingArticle = await prisma.article.findUnique({
+        where: { id }
+      });
+    } else {
+      existingArticle = await prisma.article.findUnique({
+        where: { slug: param }
+      });
+    }
 
     if (!existingArticle) {
       return NextResponse.json(
@@ -71,7 +87,10 @@ export async function PUT(
       );
     }
 
-    const { title, content, category, imageUrl, isPublished } = await request.json();
+    const body = await request.json();
+    console.log('Request body:', body);
+
+    const { title, content, category, imageUrl, isPublished } = body;
 
     // Validações
     if (!title || !content || !category) {
@@ -92,17 +111,33 @@ export async function PUT(
     const readTime = calculateReadTime(content);
     const excerpt = extractExcerpt(content);
 
+    console.log('Generated data:', { newSlug, readTime, excerpt, isPublished });
+
     // Verificar se o novo slug já existe (exceto para o artigo atual)
-    if (newSlug !== currentSlug) {
+    if (newSlug !== existingArticle.slug) {
       const slugExists = await prisma.article.findUnique({
         where: { slug: newSlug }
       });
 
       if (slugExists) {
-        return NextResponse.json(
-          { error: 'Já existe um artigo com este título' },
-          { status: 400 }
-        );
+        // Gerar slug único
+        let finalSlug = newSlug;
+        let counter = 1;
+        
+        while (true) {
+          const existingSlug = await prisma.article.findUnique({
+            where: { slug: finalSlug }
+          });
+          
+          if (!existingSlug) {
+            break;
+          }
+          
+          finalSlug = `${newSlug}-${counter}`;
+          counter++;
+        }
+        
+        newSlug = finalSlug;
       }
     }
 
@@ -117,17 +152,18 @@ export async function PUT(
         category,
         imageUrl: imageUrl || null,
         readTime,
-        isPublished: isPublished || false,
+        isPublished: Boolean(isPublished),
         updatedAt: new Date()
       }
     });
 
+    console.log('Article updated:', updatedArticle);
     return NextResponse.json(updatedArticle);
   } catch (error) {
     console.error('Error updating article:', error);
     return NextResponse.json(
       { 
-        error: 'Erro ao atualizar artigo',
+        error: 'Erro ao atualizar artigo: ' + (error as Error).message,
         details: error instanceof Error ? error.message : null
       },
       { status: 500 }
@@ -135,27 +171,27 @@ export async function PUT(
   }
 }
 
-// DELETE /api/articles/[slug] - Deletar artigo por slug
+// DELETE /api/articles/[slug] - Deletar artigo por slug ou ID
 export async function DELETE(
   request: NextRequest,
   { params }: { params: { slug: string } }
 ) {
   try {
-    // Verificar autenticação
-    const token = request.cookies.get('auth-token')?.value;
-    if (!token || !verifyToken(token)) {
-      return NextResponse.json(
-        { error: 'Não autorizado' },
-        { status: 401 }
-      );
-    }
-
-    const { slug } = params;
+    const { slug: param } = params;
 
     // Primeiro encontre o artigo para obter o ID
-    const existingArticle = await prisma.article.findUnique({
-      where: { slug }
-    });
+    let existingArticle;
+
+    if (isNumericId(param)) {
+      const id = parseInt(param);
+      existingArticle = await prisma.article.findUnique({
+        where: { id }
+      });
+    } else {
+      existingArticle = await prisma.article.findUnique({
+        where: { slug: param }
+      });
+    }
 
     if (!existingArticle) {
       return NextResponse.json(
@@ -181,3 +217,4 @@ export async function DELETE(
     );
   }
 }
+
