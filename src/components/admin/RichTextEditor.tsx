@@ -43,33 +43,47 @@ export default function RichTextEditor({
       const file = input.files?.[0];
       if (!file) return;
 
+      console.log('Arquivo selecionado:', file.name, file.type, file.size);
+
       try {
         const formData = new FormData();
         formData.append('file', file);
 
+        console.log('Enviando arquivo para upload...');
         const response = await fetch('/api/upload', {
           method: 'POST',
           body: formData,
         });
 
+        console.log('Resposta do upload:', response.status, response.statusText);
         const data = await response.json();
+        console.log('Dados da resposta:', data);
 
-        if (response.ok) {
+        if (response.ok && data.url) {
           const quill = quillRef.current?.getEditor();
           if (quill) {
             const range = quill.getSelection();
-            quill.insertEmbed(range?.index || 0, 'image', data.url);
+            const index = range?.index || 0;
+            
+            console.log('Inserindo imagem no editor:', data.url);
+            quill.insertEmbed(index, 'image', data.url);
             
             // Adicionar espaçamento após a imagem
-            quill.insertText(range?.index + 1 || 1, '\n\n');
-            quill.setSelection(range?.index + 2 || 2);
+            quill.insertText(index + 1, '\n\n');
+            quill.setSelection(index + 2);
+            
+            console.log('Imagem inserida com sucesso!');
+          } else {
+            console.error('Editor Quill não encontrado');
+            alert('Erro: Editor não encontrado');
           }
         } else {
+          console.error('Erro na resposta do upload:', data);
           alert('Erro ao fazer upload da imagem: ' + (data.error || 'Erro desconhecido'));
         }
       } catch (error) {
+        console.error('Erro durante o upload:', error);
         alert('Erro ao fazer upload da imagem');
-        console.error('Upload error:', error);
       }
     };
   }

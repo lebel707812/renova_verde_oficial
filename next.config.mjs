@@ -1,7 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
-    domains: ['localhost'],
     remotePatterns: [
       {
         protocol: 'http',
@@ -14,14 +13,6 @@ const nextConfig = {
         hostname: '**',
       },
     ],
-  },
-  async rewrites() {
-    return [
-      {
-        source: '/uploads/:path*',
-        destination: '/api/images/:path*',
-      },
-    ];
   },
 };
 
