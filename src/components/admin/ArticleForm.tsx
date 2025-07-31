@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import MarkdownEditor from './MarkdownEditor';
+import TiptapEditor from './TiptapEditor';
 import { ARTICLE_CATEGORIES } from '@/lib/constants';
 
 interface Article {
@@ -18,30 +18,6 @@ interface Article {
 interface ArticleFormProps {
   article?: Article;
   isEditing?: boolean;
-}
-
-// Componente para renderizar Markdown
-function MarkdownPreview({ content }: { content: string }) {
-  const renderMarkdown = (text: string) => {
-    return text
-      .replace(/^## (.*$)/gim, '<h2 class="text-2xl font-bold text-gray-900 mt-6 mb-4">$1</h2>')
-      .replace(/^### (.*$)/gim, '<h3 class="text-xl font-semibold text-gray-800 mt-4 mb-3">$1</h3>')
-      .replace(/\*\*(.*?)\*\*/g, '<strong class="font-semibold">$1</strong>')
-      .replace(/\*(.*?)\*/g, '<em class="italic">$1</em>')
-      .replace(/^- (.*$)/gim, '<li class="ml-4">$1</li>')
-      .replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img src="$2" alt="$1" class="max-w-full h-auto rounded-lg shadow-md my-4" />')
-      .replace(/\n\n/g, '</p><p class="mb-4">')
-      .replace(/\n/g, '<br />');
-  };
-
-  return (
-    <div 
-      className="prose prose-lg max-w-none"
-      dangerouslySetInnerHTML={{ 
-        __html: `<p class="mb-4">${renderMarkdown(content)}</p>` 
-      }}
-    />
-  );
 }
 
 export default function ArticleForm({ article, isEditing = false }: ArticleFormProps) {
@@ -395,10 +371,10 @@ export default function ArticleForm({ article, isEditing = false }: ArticleFormP
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               {/* Editor */}
               <div className={showPreview ? 'hidden lg:block' : ''}>
-                <MarkdownEditor
+                <TiptapEditor
                   value={formData.content}
                   onChange={(value) => setFormData(prev => ({ ...prev, content: value }))}
-                  placeholder="Digite o conteúdo do artigo usando Markdown..."
+                  placeholder="Digite o conteúdo do artigo..."
                   height="500px"
                 />
               </div>
@@ -407,7 +383,10 @@ export default function ArticleForm({ article, isEditing = false }: ArticleFormP
               <div className={`${showPreview ? '' : 'hidden lg:block'} border border-gray-300 rounded-lg p-4 bg-gray-50 overflow-y-auto max-h-96`}>
                 <h4 className="text-sm font-medium text-gray-700 mb-3">Preview:</h4>
                 {formData.content ? (
-                  <MarkdownPreview content={formData.content} />
+                  <div 
+                    className="prose prose-lg max-w-none"
+                    dangerouslySetInnerHTML={{ __html: formData.content }}
+                  />
                 ) : (
                   <p className="text-gray-500 text-sm italic">Digite algo no editor para ver o preview...</p>
                 )}
@@ -416,10 +395,10 @@ export default function ArticleForm({ article, isEditing = false }: ArticleFormP
             
             <div className="mt-2 text-xs text-gray-500 space-y-1">
               <p><strong>Dicas de formatação:</strong></p>
-              <p>• Use ## para títulos principais e ### para subtítulos</p>
-              <p>• Use **texto** para negrito e *texto* para itálico</p>
-              <p>• Use - para listas com marcadores</p>
-              <p>• Use o botão de imagem na toolbar para adicionar imagens</p>
+              <p>• Use os botões da toolbar para formatação</p>
+              <p>• Arraste e solte imagens diretamente no editor</p>
+              <p>• Cole imagens da área de transferência (Ctrl+V)</p>
+              <p>• Clique no botão "📷 Imagem" para selecionar arquivos</p>
               <p>• <strong>Auto-save:</strong> Suas alterações são salvas automaticamente a cada 3 segundos</p>
             </div>
           </div>
