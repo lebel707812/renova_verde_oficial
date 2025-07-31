@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
+import RichTextEditor from './RichTextEditor';
 import { ARTICLE_CATEGORIES } from '@/lib/constants';
 
 interface Article {
@@ -515,27 +516,11 @@ export default function ArticleForm({ article, isEditing = false }: ArticleFormP
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               {/* Editor */}
               <div className={showPreview ? 'hidden lg:block' : ''}>
-                <textarea
-                  ref={textareaRef}
-                  name="content"
-                  required
+                <RichTextEditor
                   value={formData.content}
-                  onChange={handleInputChange}
-                  rows={20}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500 font-mono text-sm"
-                  placeholder="Digite o conteúdo do artigo usando Markdown...
-
-Exemplos de formatação:
-## Título Principal
-### Subtítulo
-
-**Texto em negrito**
-*Texto em itálico*
-
-- Lista de itens
-- Outro item
-
-Para adicionar imagens no meio do texto, clique no botão 'Imagem' acima e selecione a imagem desejada."
+                  onChange={(value) => setFormData(prev => ({ ...prev, content: value }))}
+                  placeholder="Digite o conteúdo do artigo..."
+                  height="500px"
                 />
               </div>
 

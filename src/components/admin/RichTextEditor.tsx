@@ -33,7 +33,8 @@ export default function RichTextEditor({
   }, []);
 
   // Handler personalizado para upload de imagens
-  function imageHandler() {
+  const imageHandler = () => {
+    console.log('imageHandler chamado!');
     const input = document.createElement('input');
     input.setAttribute('type', 'file');
     input.setAttribute('accept', 'image/*');
@@ -86,7 +87,7 @@ export default function RichTextEditor({
         alert('Erro ao fazer upload da imagem');
       }
     };
-  }
+  };
 
   // Configuração das ferramentas do editor
   const modules = {
