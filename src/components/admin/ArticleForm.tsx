@@ -195,6 +195,8 @@ export default function ArticleForm({ article, isEditing = false }: ArticleFormP
     }
   };
 
+
+
   return (
     <div className="max-w-7xl mx-auto">
       <div className="bg-white shadow-sm rounded-lg">
