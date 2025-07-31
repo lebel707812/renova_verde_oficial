@@ -107,7 +107,7 @@ export async function PUT(
       );
     }
 
-    const newSlug = generateSlug(title);
+    let newSlug = generateSlug(title);
     const readTime = calculateReadTime(content);
     const excerpt = extractExcerpt(content);
 
