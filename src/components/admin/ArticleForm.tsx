@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import RichTextEditor from './RichTextEditor';
+import MarkdownEditor from './MarkdownEditor';
 import { ARTICLE_CATEGORIES } from '@/lib/constants';
 
 interface Article {
@@ -56,14 +56,11 @@ export default function ArticleForm({ article, isEditing = false }: ArticleFormP
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [isUploading, setIsUploading] = useState(false);
-  const [isUploadingContent, setIsUploadingContent] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
   const [autoSaveStatus, setAutoSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const contentImageInputRef = useRef<HTMLInputElement>(null);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const router = useRouter();
   const autoSaveTimeoutRef = useRef<NodeJS.Timeout>();
 
@@ -157,69 +154,6 @@ export default function ArticleForm({ article, isEditing = false }: ArticleFormP
       setError('Erro ao fazer upload da imagem');
     } finally {
       setIsUploading(false);
-    }
-  };
-
-  const handleContentImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    setIsUploadingContent(true);
-    setError('');
-
-    try {
-      const formData = new FormData();
-      formData.append('file', file);
-
-      const response = await fetch('/api/upload', {
-        method: 'POST',
-        body: formData,
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        // Inserir a imagem no textarea na posição do cursor
-        const textarea = textareaRef.current;
-        if (textarea) {
-          const start = textarea.selectionStart;
-          const end = textarea.selectionEnd;
-          const currentContent = formData.content;
-          const imageMarkdown = `\n\n![Imagem do artigo](${data.url})\n\n`;
-          const newContent = currentContent.substring(0, start) + imageMarkdown + currentContent.substring(end);
-          
-          setFormData(prev => ({ ...prev, content: newContent }));
-          
-          // Reposicionar o cursor após a imagem inserida
-          setTimeout(() => {
-            textarea.focus();
-            textarea.setSelectionRange(start + imageMarkdown.length, start + imageMarkdown.length);
-          }, 100);
-        }
-      } else {
-        setError(data.error || 'Erro ao fazer upload da imagem');
-      }
-    } catch {
-      setError('Erro ao fazer upload da imagem');
-    } finally {
-      setIsUploadingContent(false);
-    }
-  };
-
-  const insertTextAtCursor = (text: string) => {
-    const textarea = textareaRef.current;
-    if (textarea) {
-      const start = textarea.selectionStart;
-      const end = textarea.selectionEnd;
-      const currentContent = formData.content;
-      const newContent = currentContent.substring(0, start) + text + currentContent.substring(end);
-      
-      setFormData(prev => ({ ...prev, content: newContent }));
-      
-      setTimeout(() => {
-        textarea.focus();
-        textarea.setSelectionRange(start + text.length, start + text.length);
-      }, 100);
     }
   };
 
@@ -456,70 +390,15 @@ export default function ArticleForm({ article, isEditing = false }: ArticleFormP
               <label className="block text-sm font-medium text-gray-700">
                 Conteúdo do Artigo *
               </label>
-              <div className="flex space-x-2">
-                {!showPreview && (
-                  <>
-                    <button
-                      type="button"
-                      onClick={() => insertTextAtCursor('**Texto em negrito**')}
-                      className="px-2 py-1 text-xs bg-gray-100 hover:bg-gray-200 rounded border"
-                      title="Negrito"
-                    >
-                      <strong>B</strong>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => insertTextAtCursor('*Texto em itálico*')}
-                      className="px-2 py-1 text-xs bg-gray-100 hover:bg-gray-200 rounded border"
-                      title="Itálico"
-                    >
-                      <em>I</em>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => insertTextAtCursor('\n## Título da Seção\n\n')}
-                      className="px-2 py-1 text-xs bg-gray-100 hover:bg-gray-200 rounded border"
-                      title="Título"
-                    >
-                      H2
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => insertTextAtCursor('\n### Subtítulo\n\n')}
-                      className="px-2 py-1 text-xs bg-gray-100 hover:bg-gray-200 rounded border"
-                      title="Subtítulo"
-                    >
-                      H3
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => insertTextAtCursor('\n- Item da lista\n- Outro item\n\n')}
-                      className="px-2 py-1 text-xs bg-gray-100 hover:bg-gray-200 rounded border"
-                      title="Lista"
-                    >
-                      Lista
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => contentImageInputRef.current?.click()}
-                      disabled={isUploadingContent}
-                      className="px-2 py-1 text-xs bg-green-100 hover:bg-green-200 text-green-700 rounded border border-green-300 disabled:opacity-50"
-                      title="Adicionar imagem no texto"
-                    >
-                      {isUploadingContent ? '...' : '📷 Imagem'}
-                    </button>
-                  </>
-                )}
-              </div>
             </div>
             
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               {/* Editor */}
               <div className={showPreview ? 'hidden lg:block' : ''}>
-                <RichTextEditor
+                <MarkdownEditor
                   value={formData.content}
                   onChange={(value) => setFormData(prev => ({ ...prev, content: value }))}
-                  placeholder="Digite o conteúdo do artigo..."
+                  placeholder="Digite o conteúdo do artigo usando Markdown..."
                   height="500px"
                 />
               </div>
@@ -535,20 +414,12 @@ export default function ArticleForm({ article, isEditing = false }: ArticleFormP
               </div>
             </div>
             
-            <input
-              ref={contentImageInputRef}
-              type="file"
-              accept="image/*"
-              onChange={handleContentImageUpload}
-              className="hidden"
-            />
-            
             <div className="mt-2 text-xs text-gray-500 space-y-1">
               <p><strong>Dicas de formatação:</strong></p>
               <p>• Use ## para títulos principais e ### para subtítulos</p>
               <p>• Use **texto** para negrito e *texto* para itálico</p>
               <p>• Use - para listas com marcadores</p>
-              <p>• Clique em "📷 Imagem" para adicionar imagens intercaladas no texto</p>
+              <p>• Use o botão de imagem na toolbar para adicionar imagens</p>
               <p>• <strong>Auto-save:</strong> Suas alterações são salvas automaticamente a cada 3 segundos</p>
             </div>
           </div>
