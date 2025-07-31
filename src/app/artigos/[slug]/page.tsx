@@ -17,6 +17,8 @@ interface Comment {
 
 export default function ArticlePage({ params }: { params: { slug: string } }) {
   const [article, setArticle] = useState<Article | null>(null);
+  const [relatedArticles, setRelatedArticles] = useState<Article[]>([]);
+  const [newArticles, setNewArticles] = useState<Article[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [liked, setLiked] = useState(false);
@@ -45,6 +47,14 @@ export default function ArticlePage({ params }: { params: { slug: string } }) {
         
         const data = await response.json();
         setArticle(data);
+        
+        // Buscar artigos relacionados e novos artigos
+        const relatedResponse = await fetch(`/api/articles/related?slug=${params.slug}`);
+        if (relatedResponse.ok) {
+          const relatedData = await relatedResponse.json();
+          setRelatedArticles(relatedData.relatedArticles || []);
+          setNewArticles(relatedData.newArticles || []);
+        }
         
         // Comentários mockados (substitua por chamada à API se necessário)
         setComments([
@@ -413,22 +423,90 @@ export default function ArticlePage({ params }: { params: { slug: string } }) {
             {/* Sidebar */}
             <div className="lg:col-span-1">
               <div className="bg-white rounded-2xl shadow-lg p-6 sticky top-8">
+                {/* Artigos Relacionados */}
                 <h3 className="text-xl font-bold text-gray-900 mb-4">Artigos Relacionados</h3>
+                <div className="space-y-4 mb-8">
+                  {relatedArticles.length > 0 ? (
+                    relatedArticles.map((relatedArticle) => (
+                      <Link 
+                        key={relatedArticle.id} 
+                        href={`/artigos/${relatedArticle.slug}`} 
+                        className="flex items-center space-x-4 group"
+                      >
+                        <div className="relative w-20 h-20 flex-shrink-0 rounded-lg overflow-hidden">
+                          {relatedArticle.imageUrl ? (
+                            <Image
+                              src={relatedArticle.imageUrl}
+                              alt={relatedArticle.title}
+                              fill
+                              className="object-cover"
+                              sizes="80px"
+                            />
+                          ) : (
+                            <div className="absolute inset-0 bg-gray-200 flex items-center justify-center">
+                              <span className="text-gray-400 text-xs">Sem imagem</span>
+                            </div>
+                          )}
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-gray-500 group-hover:text-green-600 transition-colors">
+                            {relatedArticle.category}
+                          </p>
+                          <h4 className="text-base font-semibold text-gray-800 group-hover:text-green-700 transition-colors leading-tight">
+                            {relatedArticle.title}
+                          </h4>
+                          <p className="text-xs text-gray-400 mt-1">
+                            {relatedArticle.readTime} min de leitura
+                          </p>
+                        </div>
+                      </Link>
+                    ))
+                  ) : (
+                    <p className="text-gray-500 text-sm">Nenhum artigo relacionado encontrado.</p>
+                  )}
+                </div>
+
+                {/* Novos Artigos */}
+                <h3 className="text-xl font-bold text-gray-900 mb-4">Novos Artigos</h3>
                 <div className="space-y-4">
-                  {/* Exemplo de artigo relacionado - substitua por dados reais */}
-                  <Link href="/artigos/sustentabilidade-no-dia-a-dia" className="flex items-center space-x-4 group">
-                    <div className="relative w-20 h-20 flex-shrink-0 rounded-lg overflow-hidden">
-                      <div className="absolute inset-0 bg-gray-200"></div>
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-gray-500 group-hover:text-green-600 transition-colors">
-                        Sustentabilidade
-                      </p>
-                      <h4 className="text-base font-semibold text-gray-800 group-hover:text-green-700 transition-colors leading-tight">
-                        Dicas para um dia a dia mais sustentável
-                      </h4>
-                    </div>
-                  </Link>
+                  {newArticles.length > 0 ? (
+                    newArticles.map((newArticle) => (
+                      <Link 
+                        key={newArticle.id} 
+                        href={`/artigos/${newArticle.slug}`} 
+                        className="flex items-center space-x-4 group"
+                      >
+                        <div className="relative w-20 h-20 flex-shrink-0 rounded-lg overflow-hidden">
+                          {newArticle.imageUrl ? (
+                            <Image
+                              src={newArticle.imageUrl}
+                              alt={newArticle.title}
+                              fill
+                              className="object-cover"
+                              sizes="80px"
+                            />
+                          ) : (
+                            <div className="absolute inset-0 bg-gray-200 flex items-center justify-center">
+                              <span className="text-gray-400 text-xs">Sem imagem</span>
+                            </div>
+                          )}
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-gray-500 group-hover:text-green-600 transition-colors">
+                            {newArticle.category}
+                          </p>
+                          <h4 className="text-base font-semibold text-gray-800 group-hover:text-green-700 transition-colors leading-tight">
+                            {newArticle.title}
+                          </h4>
+                          <p className="text-xs text-gray-400 mt-1">
+                            {new Date(newArticle.createdAt).toLocaleDateString('pt-BR')}
+                          </p>
+                        </div>
+                      </Link>
+                    ))
+                  ) : (
+                    <p className="text-gray-500 text-sm">Nenhum artigo novo encontrado.</p>
+                  )}
                 </div>
               </div>
             </div>
