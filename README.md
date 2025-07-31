@@ -8,6 +8,15 @@ O Renova Verde Hub é uma plataforma dedicada a promover sustentabilidade reside
 
 ## ✨ Características
 
+### Gerenciamento de Artigos
+- **Editor de Artigos Aprimorado**: Dimensões do editor de conteúdo e do preview aumentadas para melhor usabilidade.
+- **Preview Markdown em Tempo Real**: Renderização correta de cabeçalhos (H2, H3), listas, negrito e itálico no preview.
+- **Interface Limpa**: Remoção de textos de dicas desnecessários no editor de artigos.
+
+### Navegação e Descoberta de Conteúdo
+- **Artigos Relacionados Inteligentes**: Algoritmo baseado em palavras-chave para sugerir artigos relevantes ao conteúdo lido.
+- **Novos Artigos**: Seção dedicada aos 3 artigos mais recentes, excluindo o artigo atual.
+
 ### Design e UX
 - **Design Mobile-First**: Totalmente responsivo para todos os dispositivos
 - **Cores Primárias**: Verde-escuro (#1a3f32) como cor principal
@@ -118,53 +127,38 @@ Configurações em `src/app/layout.tsx`:
 - Schema.org para SEO
 - Favicon e theme colors
 
-## 🔮 Futuras Integrações
+## 🔮 Próximas Etapas e Melhorias Sugeridas
 
-### APIs Necessárias
+Com as funcionalidades atuais, o blog já está robusto para um deploy inicial. No entanto, há sempre espaço para crescimento e aprimoramento. Abaixo, algumas ideias para futuras integrações e melhorias:
 
-#### 1. API de Artigos do Blog
-**Localização**: `src/lib/constants.ts` (linha 6)
-```typescript
-// TODO: Integrar com API de artigos do blog
-export const FEATURED_ARTICLES: Article[] = [
-  // Substituir dados mock por chamada à API
-];
-```
+### 1. **Melhorias no Conteúdo e SEO**
+- **Otimização de Conteúdo Existente**: Revisar artigos para SEO, garantindo palavras-chave relevantes e estrutura otimizada.
+- **Criação de Conteúdo Regular**: Estabelecer um calendário editorial para publicações consistentes.
+- **Implementação de Breadcrumbs**: Melhorar a navegação e o SEO, especialmente para artigos.
 
-**Implementação sugerida**:
-```typescript
-// src/lib/api.ts
-export async function getFeaturedArticles(): Promise<Article[]> {
-  const response = await fetch('/api/articles/featured');
-  return response.json();
-}
-```
+### 2. **Funcionalidades de Interação e Comunidade**
+- **Sistema de Comentários Aprimorado**: Implementar autenticação para comentários, respostas aninhadas mais complexas e moderação.
+- **Compartilhamento em Redes Sociais**: Adicionar botões de compartilhamento direto para as principais redes sociais.
+- **Sistema de Avaliação/Reação**: Permitir que usuários avaliem ou reajam aos artigos (ex: likes, estrelas).
 
-#### 2. API de Newsletter
-**Localização**: `src/components/ui/NewsletterSignup.tsx` (linha 25)
-```typescript
-// TODO: Integrar com API de newsletter
-// Simulação de chamada para API
-await new Promise(resolve => setTimeout(resolve, 1000));
-```
+### 3. **Experiência do Usuário e Navegação**
+- **Sistema de Busca Avançada**: Implementar uma busca mais robusta com filtros por categoria, autor, data, etc.
+- **Filtros e Tags de Categoria**: Adicionar filtros visuais na página de listagem de artigos para facilitar a navegação por tópicos.
+- **Páginas de Autor**: Criar páginas dedicadas para cada autor, listando seus artigos.
+- **Paginação ou Carregamento Infinito**: Melhorar a experiência de navegação em listas longas de artigos.
 
-**Implementação sugerida**:
-```typescript
-const response = await fetch('/api/newsletter/subscribe', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({ email })
-});
-```
+### 4. **Infraestrutura e Performance**
+- **Integração com um CMS (Content Management System)**: Utilizar plataformas como Strapi, Contentful ou Sanity para gerenciar o conteúdo de forma mais eficiente, facilitando a criação e edição de artigos sem a necessidade de intervenção no código.
+- **Otimização de Imagens para Diferentes Dispositivos**: Garantir que as imagens sejam carregadas no tamanho e formato ideais para cada dispositivo, melhorando a performance.
+- **Implementação de Cache**: Otimizar o carregamento de páginas e APIs através de estratégias de cache.
+- **Monitoramento de Performance e Erros**: Configurar ferramentas de monitoramento para identificar gargalos e erros em tempo real.
 
-### Melhorias Recomendadas
+### 5. **Monetização e Engajamento**
+- **Newsletter Aprimorada**: Integrar com um serviço de e-mail marketing (Mailchimp, SendGrid) para automação e segmentação.
+- **Conteúdo Premium/Assinatura**: Explorar a possibilidade de oferecer conteúdo exclusivo para assinantes.
+- **Integração com Google Analytics/Ferramentas de Análise**: Para entender o comportamento do usuário e otimizar o site com base em dados.
 
-1. **Sistema de Busca**: Implementar busca de artigos
-2. **Filtros por Categoria**: Navegação por categorias
-3. **Analytics**: Google Analytics ou similar
-4. **CMS Integration**: Strapi, Contentful ou Sanity
-5. **Comentários**: Sistema de comentários nos artigos
-6. **PWA**: Progressive Web App features
+Estas são apenas algumas sugestões para continuar aprimorando o Renova Verde Hub. O projeto já possui uma base sólida para crescer!
 
 ## 📊 Performance
 
