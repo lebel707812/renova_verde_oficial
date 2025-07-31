@@ -204,9 +204,6 @@ export default function ArticleForm({ article, isEditing = false }: ArticleFormP
               <h2 className="text-lg font-medium text-gray-900">
                 {isEditing ? 'Editar Artigo' : 'Novo Artigo'}
               </h2>
-              <p className="text-sm text-gray-600 mt-1">
-                Preencha os campos abaixo para criar um artigo completo com texto e imagens.
-              </p>
             </div>
             <div className="flex items-center space-x-4">
               {/* Status do Auto-save */}
@@ -375,12 +372,12 @@ export default function ArticleForm({ article, isEditing = false }: ArticleFormP
                   value={formData.content}
                   onChange={(value) => setFormData(prev => ({ ...prev, content: value }))}
                   placeholder="Digite o conteúdo do artigo..."
-                  height="500px"
+                  height="700px"
                 />
               </div>
 
               {/* Preview */}
-              <div className={`${showPreview ? '' : 'hidden lg:block'} border border-gray-300 rounded-lg p-4 bg-gray-50 overflow-y-auto max-h-96`}>
+              <div className={`${showPreview ? '' : 'hidden lg:block'} border border-gray-300 rounded-lg p-4 bg-gray-50 overflow-y-auto max-h-[700px]`}>
                 <h4 className="text-sm font-medium text-gray-700 mb-3">Preview:</h4>
                 {formData.content ? (
                   <div 
@@ -393,14 +390,7 @@ export default function ArticleForm({ article, isEditing = false }: ArticleFormP
               </div>
             </div>
             
-            <div className="mt-2 text-xs text-gray-500 space-y-1">
-              <p><strong>Dicas de formatação:</strong></p>
-              <p>• Use os botões da toolbar para formatação</p>
-              <p>• Arraste e solte imagens diretamente no editor</p>
-              <p>• Cole imagens da área de transferência (Ctrl+V)</p>
-              <p>• Clique no botão "📷 Imagem" para selecionar arquivos</p>
-              <p>• <strong>Auto-save:</strong> Suas alterações são salvas automaticamente a cada 3 segundos</p>
-            </div>
+
           </div>
 
           {error && (

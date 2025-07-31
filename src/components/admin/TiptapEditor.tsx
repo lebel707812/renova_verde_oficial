@@ -70,7 +70,7 @@ const TiptapEditor: React.FC<TiptapEditorProps> = ({
     immediatelyRender: false, // Corrige o erro de SSR
     editorProps: {
       attributes: {
-        class: 'prose prose-lg max-w-none focus:outline-none min-h-[400px] p-4 border border-gray-300 rounded-lg',
+        class: 'prose prose-lg max-w-none focus:outline-none min-h-[600px] p-4 border-0 rounded-lg overflow-y-auto',
       },
       handleDrop: (view, event, slice, moved) => {
         if (!moved && event.dataTransfer && event.dataTransfer.files && event.dataTransfer.files[0]) {
@@ -216,7 +216,7 @@ const TiptapEditor: React.FC<TiptapEditorProps> = ({
       </div>
 
       {/* Editor */}
-      <div className="border border-gray-300 rounded-b-lg" style={{ minHeight: height }}>
+      <div className="border border-gray-300 rounded-b-lg overflow-y-auto" style={{ minHeight: height, height: height }}>
         <EditorContent editor={editor} />
       </div>
 
@@ -226,13 +226,7 @@ const TiptapEditor: React.FC<TiptapEditorProps> = ({
         </div>
       )}
 
-      <div className="mt-2 text-xs text-gray-500 space-y-1">
-        <p><strong>Dicas de uso:</strong></p>
-        <p>• Use os botões da toolbar para formatação</p>
-        <p>• Arraste e solte imagens diretamente no editor</p>
-        <p>• Cole imagens da área de transferência (Ctrl+V)</p>
-        <p>• Clique no botão "📷 Imagem" para selecionar arquivos</p>
-      </div>
+
     </div>
   );
 };
