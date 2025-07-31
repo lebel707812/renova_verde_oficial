@@ -163,3 +163,77 @@ img {
     background: linear-gradient(135deg, #349a5a 0%, #57b67d 100%);
   }
 }
+
+
+/* Estilos customizados para o preview de artigos */
+.prose h2 {
+  font-size: 1.5rem !important;
+  font-weight: 700 !important;
+  color: #1f2937 !important;
+  margin-top: 2rem !important;
+  margin-bottom: 1rem !important;
+  line-height: 1.3 !important;
+}
+
+.prose h3 {
+  font-size: 1.25rem !important;
+  font-weight: 600 !important;
+  color: #374151 !important;
+  margin-top: 1.5rem !important;
+  margin-bottom: 0.75rem !important;
+  line-height: 1.4 !important;
+}
+
+.prose ul {
+  margin-top: 1rem !important;
+  margin-bottom: 1rem !important;
+  padding-left: 1.5rem !important;
+}
+
+.prose ul li {
+  margin-top: 0.5rem !important;
+  margin-bottom: 0.5rem !important;
+  list-style-type: disc !important;
+  color: #374151 !important;
+}
+
+.prose ul li p {
+  margin: 0 !important;
+  display: inline !important;
+}
+
+.prose ol {
+  margin-top: 1rem !important;
+  margin-bottom: 1rem !important;
+  padding-left: 1.5rem !important;
+}
+
+.prose ol li {
+  margin-top: 0.5rem !important;
+  margin-bottom: 0.5rem !important;
+  list-style-type: decimal !important;
+  color: #374151 !important;
+}
+
+.prose ol li p {
+  margin: 0 !important;
+  display: inline !important;
+}
+
+.prose p {
+  margin-top: 1rem !important;
+  margin-bottom: 1rem !important;
+  color: #374151 !important;
+  line-height: 1.6 !important;
+}
+
+.prose strong {
+  font-weight: 700 !important;
+  color: #111827 !important;
+}
+
+.prose em {
+  font-style: italic !important;
+  color: #374151 !important;
+}
+

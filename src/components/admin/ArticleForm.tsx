@@ -384,6 +384,14 @@ export default function ArticleForm({ article, isEditing = false }: ArticleFormP
                 {formData.content ? (
                   <div 
                     className="prose prose-lg max-w-none"
+                    style={{
+                      '--tw-prose-headings': '#1f2937',
+                      '--tw-prose-body': '#374151',
+                      '--tw-prose-bold': '#111827',
+                      '--tw-prose-links': '#059669',
+                      '--tw-prose-bullets': '#6b7280',
+                      '--tw-prose-counters': '#6b7280',
+                    } as React.CSSProperties}
                     dangerouslySetInnerHTML={{ __html: formData.content }}
                   />
                 ) : (
