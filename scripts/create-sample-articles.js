@@ -5,6 +5,7 @@ const prisma = new PrismaClient();
 const sampleArticles = [
   {
     title: "Energia Solar Residencial: Guia Completo para Iniciantes",
+    imageUrl: "https://images.unsplash.com/photo-1509391366360-2e959784a276?w=800&h=600&fit=crop",
     content: `A energia solar residencial está se tornando cada vez mais popular no Brasil. Com a redução dos custos dos painéis solares e os incentivos governamentais, investir em energia solar pode ser uma excelente decisão financeira e ambiental.
 
 ## Vantagens da Energia Solar
@@ -34,6 +35,7 @@ Investir em energia solar é investir no futuro sustentável da sua família e d
   },
   {
     title: "Compostagem Doméstica: Transforme Restos de Comida em Adubo",
+    imageUrl: "https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=800&h=600&fit=crop",
     content: `A compostagem doméstica é uma prática simples e eficaz para reduzir o lixo orgânico e produzir adubo natural para suas plantas. Além de contribuir para o meio ambiente, você economiza dinheiro em fertilizantes.
 
 ## O que é Compostagem?
@@ -83,6 +85,7 @@ A compostagem é um hábito simples que faz uma grande diferença para o meio am
   },
   {
     title: "Reforma Ecológica: Materiais Sustentáveis para sua Casa",
+    imageUrl: "https://images.unsplash.com/photo-1518051870423-937283d030f7?w=800&h=600&fit=crop",
     content: `Reformar a casa pensando na sustentabilidade é uma tendência que veio para ficar. Além de contribuir para o meio ambiente, materiais ecológicos podem oferecer melhor qualidade de vida e economia a longo prazo.
 
 ## Materiais Sustentáveis para Construção
@@ -152,6 +155,7 @@ Uma reforma ecológica é um investimento no futuro do planeta e da sua família
   },
   {
     title: "Economia de Água: 15 Dicas Práticas para Reduzir o Consumo",
+    imageUrl: "https://images.unsplash.com/photo-1551076805-e0186786854b?w=800&h=600&fit=crop",
     content: `A água é um recurso precioso e sua economia deve ser uma prioridade em todos os lares. Com algumas mudanças simples de hábitos e pequenos investimentos, é possível reduzir significativamente o consumo de água.
 
 ## Dicas para o Banheiro

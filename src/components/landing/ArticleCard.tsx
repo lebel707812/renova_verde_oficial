@@ -33,13 +33,19 @@ export default function ArticleCard({ article, className = '', style }: ArticleC
     >
       {/* Image Container */}
       <div className="relative h-48 sm:h-56 overflow-hidden">
-        <Image
-          src={article.imageUrl}
-          alt={article.title}
-          fill
-          className="object-cover transition-transform duration-700 group-hover:scale-110"
-          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-        />
+          {article.imageUrl ? (
+            <Image
+              src={article.imageUrl}
+              alt={article.title}
+              fill
+              className="object-cover transition-transform duration-700 group-hover:scale-110"
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            />
+          ) : (
+            <div className="w-full h-full bg-gray-200 flex items-center justify-center text-gray-500 text-sm">
+              Imagem não disponível
+            </div>
+          )}
         
         {/* Category Badge */}
         <div className="absolute top-4 left-4">
