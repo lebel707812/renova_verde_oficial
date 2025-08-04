@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
     const articles = await prisma.article.findMany({
       where,
       orderBy: { createdAt: 'desc' },
-      take: featured === 'true' ? 3 : undefined
+      take: featured === 'true' ? 6 : undefined
     });
 
     return NextResponse.json(articles);
