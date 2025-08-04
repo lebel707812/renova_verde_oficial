@@ -2,14 +2,6 @@
 
 import { useState } from 'react';
 import MainLayout from '@/components/layout/MainLayout';
-import { Metadata } from 'next';
-
-// Note: metadata export não funciona em client components, então vamos usar Head no layout
-const metadata = {
-  title: 'Contato - Renova Verde Hub',
-  description: 'Entre em contato conosco. Tire suas dúvidas sobre sustentabilidade residencial e envie suas sugestões para o Renova Verde Hub.',
-  keywords: 'contato renova verde hub, dúvidas sustentabilidade, suporte, atendimento',
-};
 
 export default function ContatoPage() {
   const [formData, setFormData] = useState({
@@ -42,8 +34,9 @@ export default function ContatoPage() {
       
       setSubmitStatus('success');
       setFormData({ name: '', email: '', subject: '', message: '' });
-    } catch (error) {
-      setSubmitStatus('error');
+    } catch (err: any) {
+      setSubmitStatus("error");
+      console.error("Erro ao enviar formulário:", err);
     } finally {
       setIsSubmitting(false);
     }

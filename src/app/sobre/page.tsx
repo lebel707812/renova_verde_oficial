@@ -1,5 +1,4 @@
 import MainLayout from '@/components/layout/MainLayout';
-import Image from 'next/image';
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {

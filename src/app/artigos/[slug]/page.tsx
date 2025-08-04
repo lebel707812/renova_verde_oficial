@@ -27,7 +27,7 @@ export default function ArticlePage({ params }: { params: { slug: string } }) {
   const [comments, setComments] = useState<Comment[]>([]);
   const [newComment, setNewComment] = useState({ name: '', content: '' });
   const [replyingTo, setReplyingTo] = useState<number | null>(null);
-  const [replyContent, setReplyContent] = useState('');
+
   const [commentLoading, setCommentLoading] = useState(false);
   const router = useRouter();
 
@@ -617,7 +617,7 @@ export default function ArticlePage({ params }: { params: { slug: string } }) {
                       Artigos Recentes
                     </h3>
                     <div className="space-y-4">
-                      {newArticles.map((newArticle, index) => (
+                      {newArticles.map((newArticle) => (
                         <Link
                           key={newArticle.id}
                           href={`/artigos/${newArticle.slug}`}

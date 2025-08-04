@@ -20,8 +20,8 @@ export default function ArticlesPage() {
         }
         const data = await response.json();
         setArticles(data);
-      } catch (err: any) {
-        setError(err.message);
+      } catch (err: unknown) {
+        setError(err instanceof Error ? err.message : 'Um erro desconhecido ocorreu');
       } finally {
         setLoading(false);
       }

@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
     const skip = (page - 1) * limit;
 
     // Construir condições de busca
-    const where: any = {
+    const where: { [key: string]: any } = {
       isPublished: true, // Apenas artigos publicados
     };
 

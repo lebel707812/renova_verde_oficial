@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
     let existingEmails = '';
     try {
       existingEmails = await fs.readFile(newsletterPath, 'utf-8');
-    } catch (error) {
+    } catch (err: any) {
       // Arquivo não existe ainda, será criado
       existingEmails = '';
     }
@@ -70,12 +70,12 @@ export async function POST(request: NextRequest) {
       message: 'E-mail cadastrado com sucesso na newsletter!' 
     });
 
-  } catch (error) {
-    console.error('Erro ao cadastrar e-mail na newsletter:', error);
+  } catch (err: any) {
+    console.error("Erro ao cadastrar e-mail na newsletter:", err);
     return NextResponse.json(
       { 
-        error: 'Erro interno do servidor',
-        details: error instanceof Error ? error.message : 'Erro desconhecido'
+        error: "Erro interno do servidor",
+        details: err instanceof Error ? err.message : "Erro desconhecido"
       },
       { status: 500 }
     );

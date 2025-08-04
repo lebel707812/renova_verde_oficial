@@ -135,7 +135,10 @@ export async function GET(request: NextRequest) {
     });
 
     // Remover a propriedade relevance antes de retornar
-    const cleanRelatedArticles = relatedArticles.map(({ relevance, ...article }) => article);
+    const cleanRelatedArticles = relatedArticles.map((article: any) => {
+      delete article.relevance;
+      return article;
+    });
 
     return NextResponse.json({
       relatedArticles: cleanRelatedArticles,
