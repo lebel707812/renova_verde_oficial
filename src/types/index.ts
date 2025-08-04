@@ -10,7 +10,6 @@ export interface Article {
   createdAt: string;
   publishedAt: string;
   readTime: number;
-  likes?: number;
   author: {
     name: string;
     avatar: string;
