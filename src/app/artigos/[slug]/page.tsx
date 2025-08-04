@@ -88,14 +88,36 @@ export default function ArticlePage({ params }: { params: { slug: string } }) {
       }
     };
     
-    fetchArticle();
-  }, [params.slug, router]);
+  const [likeCount, setLikeCount] = useState(article?.likes || 0);
 
-  const handleLike = () => {
-    setLiked(!liked);
-    setLikeCount(prev => liked ? prev - 1 : prev + 1);
+  useEffect(() => {
+    if (article) {
+      setLikeCount(article.likes || 0);
+    }
+  }, [article]);
+
+  const handleLike = async () => {
+    if (!article) return;
+
+    try {
+      const response = await fetch(`/api/articles/${article.slug}/like`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setLikeCount(data.likes);
+        setLiked(true); // Assume que o usuário só pode dar like uma vez por sessão ou que o backend lida com isso
+      } else {
+        console.error('Failed to update likes');
+      }
+    } catch (error) {
+      console.error('Error sending like request:', error);
+    }
   };
-
   const handleShare = () => {
     if (navigator.share) {
       navigator.share({
