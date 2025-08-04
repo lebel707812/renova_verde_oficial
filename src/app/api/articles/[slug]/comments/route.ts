@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import  prisma  from '@/lib/prisma';
 
 // Função auxiliar para determinar se é um ID numérico ou slug
 function isNumericId(param: string): boolean {

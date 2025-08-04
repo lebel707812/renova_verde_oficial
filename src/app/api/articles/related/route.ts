@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import  prisma  from '@/lib/prisma';
+
+
+export const dynamic = 'force-dynamic';
 
 // Função para extrair palavras-chave do conteúdo
 function extractKeywords(content: string, title: string): string[] {

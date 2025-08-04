@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import  prisma  from '@/lib/prisma';
+
+
+export const dynamic = 'force-dynamic';
 
 // GET /api/search - Buscar artigos
 export async function GET(request: NextRequest) {

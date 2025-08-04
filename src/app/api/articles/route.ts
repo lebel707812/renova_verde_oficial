@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import  prisma  from '@/lib/prisma';
 import { generateSlug, calculateReadTime, extractExcerpt, isValidCategory } from '@/lib/utils';
+
+export const dynamic = 'force-dynamic';
 
 // GET /api/articles - Listar artigos
 export async function GET(request: NextRequest) {
