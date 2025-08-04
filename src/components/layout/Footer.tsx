@@ -1,6 +1,58 @@
+'use client';
+
 import Link from 'next/link';
+import { useState } from 'react';
 
 export default function Footer() {
+  const [email, setEmail] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [message, setMessage] = useState('');
+  const [isSuccess, setIsSuccess] = useState(false);
+
+  const handleNewsletterSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!email.trim()) {
+      setMessage('Por favor, insira seu e-mail');
+      setIsSuccess(false);
+      return;
+    }
+
+    setIsSubmitting(true);
+    setMessage('');
+
+    try {
+      const response = await fetch('/api/newsletter', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setMessage(data.message);
+        setIsSuccess(true);
+        setEmail(''); // Limpar o campo
+      } else {
+        setMessage(data.error || 'Erro ao cadastrar e-mail');
+        setIsSuccess(false);
+      }
+    } catch (error) {
+      console.error('Erro ao enviar newsletter:', error);
+      setMessage('Erro de conexão. Tente novamente.');
+      setIsSuccess(false);
+    } finally {
+      setIsSubmitting(false);
+      
+      // Limpar mensagem após 5 segundos
+      setTimeout(() => {
+        setMessage('');
+      }, 5000);
+    }
+  };
   return (
     <footer className="bg-primary-900 text-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -23,19 +75,28 @@ export default function Footer() {
             {/* Newsletter Signup */}
             <div className="mb-6">
               <h3 className="text-lg font-semibold mb-3">Receba nossas dicas por email</h3>
-              <form className="flex flex-col sm:flex-row gap-3">
+              <form onSubmit={handleNewsletterSubmit} className="flex flex-col sm:flex-row gap-3">
                 <input
                   type="email"
                   placeholder="Seu melhor email"
-                  className="flex-1 px-4 py-2 rounded-lg text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-green-400"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  disabled={isSubmitting}
+                  className="flex-1 px-4 py-2 rounded-lg text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-green-400 disabled:opacity-50"
                 />
                 <button
                   type="submit"
-                  className="px-6 py-2 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg transition-colors duration-200"
+                  disabled={isSubmitting}
+                  className="px-6 py-2 bg-green-600 hover:bg-green-700 disabled:bg-green-400 text-white font-medium rounded-lg transition-colors duration-200 disabled:cursor-not-allowed"
                 >
-                  Inscrever-se
+                  {isSubmitting ? 'Enviando...' : 'Inscrever-se'}
                 </button>
               </form>
+              {message && (
+                <p className={`mt-2 text-sm ${isSuccess ? 'text-green-400' : 'text-red-400'}`}>
+                  {message}
+                </p>
+              )}
             </div>
           </div>
 
