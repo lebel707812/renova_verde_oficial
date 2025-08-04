@@ -14,8 +14,8 @@ export interface Article {
   author: {
     name: string;
     avatar: string;
-
   };
+  authorName?: string;
 }
 
 // Tipos para newsletter

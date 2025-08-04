@@ -323,11 +323,11 @@ export default function ArticlePage({ params }: { params: { slug: string } }) {
                   <div className="flex items-center mb-8 pb-6 border-b border-gray-200">
                     <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center mr-4">
                       <span className="text-green-600 font-semibold text-lg">
-                        {article.author?.name?.charAt(0) || 'A'}
+                        {article.authorName?.charAt(0) || 'A'}
                       </span>
                     </div>
                     <div>
-                      <p className="font-semibold text-gray-900">{article.author?.name || 'Autor Desconhecido'}</p>
+                      <p className="font-semibold text-gray-900">{article.authorName || 'Autor Desconhecido'}</p>
                       <p className="text-sm text-gray-500">Especialista em Sustentabilidade</p>
                     </div>
                   </div>

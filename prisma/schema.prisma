@@ -33,6 +33,7 @@ model Article {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   likes       Int      @default(0)
+  authorName  String?
 
   @@map("articles")
 }
