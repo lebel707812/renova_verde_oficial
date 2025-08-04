@@ -44,7 +44,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     console.log('Request body:', body);
     
-    const { title, content, category, imageUrl, isPublished } = body;
+    const { title, content, category, imageUrl, isPublished, authorName } = body;
 
     if (!title || !content || !category) {
       console.log('Missing required fields');
@@ -94,7 +94,8 @@ export async function POST(request: NextRequest) {
         category,
         imageUrl: imageUrl || null,
         readTime,
-        isPublished: Boolean(isPublished)
+        isPublished: Boolean(isPublished),
+        authorName: authorName || null
       }
     });
 
