@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -22,7 +23,7 @@ export default function ArticlePage({ params }: { params: { slug: string } }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [liked, setLiked] = useState(false);
-  const [likeCount, setLikeCount] = useState(42);
+  const [likeCount, setLikeCount] = useState(0);
   const [comments, setComments] = useState<Comment[]>([]);
   const [newComment, setNewComment] = useState({ name: '', content: '' });
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
@@ -47,6 +48,7 @@ export default function ArticlePage({ params }: { params: { slug: string } }) {
         
         const data = await response.json();
         setArticle(data);
+        setLikeCount(data.likes || 0);
         
         // Buscar artigos relacionados e novos artigos
         const relatedResponse = await fetch(`/api/articles/related?slug=${params.slug}`);
@@ -88,13 +90,8 @@ export default function ArticlePage({ params }: { params: { slug: string } }) {
       }
     };
     
-  const [likeCount, setLikeCount] = useState(article?.likes || 0);
-
-  useEffect(() => {
-    if (article) {
-      setLikeCount(article.likes || 0);
-    }
-  }, [article]);
+    fetchArticle();
+  }, [params.slug, router]);
 
   const handleLike = async () => {
     if (!article) return;
@@ -118,6 +115,7 @@ export default function ArticlePage({ params }: { params: { slug: string } }) {
       console.error('Error sending like request:', error);
     }
   };
+
   const handleShare = () => {
     if (navigator.share) {
       navigator.share({
@@ -391,43 +389,45 @@ export default function ArticlePage({ params }: { params: { slug: string } }) {
                         >
                           Responder
                         </button>
+                        {replyingTo === comment.id && (
+                          <form 
+                            onSubmit={(e) => {
+                              e.preventDefault();
+                              handleReplySubmit(comment.id);
+                            }}
+                            className="mt-4 p-4 bg-white rounded-lg shadow-inner"
+                          >
+                            <textarea
+                              placeholder="Sua resposta..."
+                              value={replyContent}
+                              onChange={(e) => setReplyContent(e.target.value)}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                              rows={2}
+                              required
+                            />
+                            <div className="flex justify-end space-x-2 mt-2">
+                              <button
+                                type="button"
+                                onClick={() => setReplyingTo(null)}
+                                className="px-4 py-2 text-gray-600 rounded-lg hover:bg-gray-100 transition-colors"
+                              >
+                                Cancelar
+                              </button>
+                              <button
+                                type="submit"
+                                className="px-4 py-2 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition-colors"
+                              >
+                                Enviar Resposta
+                              </button>
+                            </div>
+                          </form>
+                        )}
                       </div>
-
-                      {/* Formulário de Resposta */}
-                      {replyingTo === comment.id && (
-                        <form onSubmit={(e) => { e.preventDefault(); handleReplySubmit(comment.id); }} className="mt-4 p-4 bg-white rounded-lg shadow-sm">
-                          <textarea
-                            placeholder="Escreva sua resposta..."
-                            value={replyContent}
-                            onChange={(e) => setReplyContent(e.target.value)}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                            rows={2}
-                            required
-                          />
-                          <div className="flex justify-end space-x-2 mt-2">
-                            <button
-                              type="button"
-                              onClick={() => setReplyingTo(null)}
-                              className="px-4 py-2 text-gray-600 rounded-lg hover:bg-gray-100 transition-colors"
-                            >
-                              Cancelar
-                            </button>
-                            <button
-                              type="submit"
-                              className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
-                            >
-                              Responder
-                            </button>
-                          </div>
-                        </form>
-                      )}
-
-                      {/* Respostas */}
                       {comment.replies && comment.replies.length > 0 && (
-                        <div className="mt-4 space-y-4 border-l-2 border-gray-200 pl-4">
+                        <div className="ml-8 mt-4 space-y-4 border-l-2 border-gray-200 pl-4">
                           {comment.replies.map(reply => (
                             <div key={reply.id} className="bg-white p-4 rounded-xl shadow-sm">
-                              <div className="flex items-center justify-between mb-2">
+                              <div className="flex items-center justify-between mb-1">
                                 <p className="font-semibold text-gray-900">{reply.name}</p>
                                 <p className="text-sm text-gray-500">{new Date(reply.publishedAt).toLocaleDateString('pt-BR')}</p>
                               </div>
@@ -443,94 +443,62 @@ export default function ArticlePage({ params }: { params: { slug: string } }) {
             </div>
 
             {/* Sidebar */}
-            <div className="lg:col-span-1">
-              <div className="bg-white rounded-2xl shadow-lg p-6 sticky top-8">
-                {/* Artigos Relacionados */}
-                <h3 className="text-xl font-bold text-gray-900 mb-4">Artigos Relacionados</h3>
-                <div className="space-y-4 mb-8">
-                  {relatedArticles.length > 0 ? (
-                    relatedArticles.map((relatedArticle) => (
-                      <Link 
-                        key={relatedArticle.id} 
-                        href={`/artigos/${relatedArticle.slug}`} 
-                        className="flex items-center space-x-4 group"
-                      >
-                        <div className="relative w-20 h-20 flex-shrink-0 rounded-lg overflow-hidden">
-                          {relatedArticle.imageUrl ? (
-                            <Image
-                              src={relatedArticle.imageUrl}
-                              alt={relatedArticle.title}
-                              fill
-                              className="object-cover"
-                              sizes="80px"
-                            />
-                          ) : (
-                            <div className="absolute inset-0 bg-gray-200 flex items-center justify-center">
-                              <span className="text-gray-400 text-xs">Sem imagem</span>
-                            </div>
-                          )}
-                        </div>
+            <div className="lg:col-span-1 space-y-8">
+              {/* Artigos Relacionados */}
+              {relatedArticles.length > 0 && (
+                <div className="bg-white rounded-2xl shadow-lg p-6">
+                  <h3 className="text-xl font-bold text-gray-900 mb-4">Artigos Relacionados</h3>
+                  <div className="space-y-4">
+                    {relatedArticles.map(relatedArticle => (
+                      <div key={relatedArticle.slug} className="flex items-center space-x-4">
+                        <Image
+                          src={relatedArticle.imageUrl}
+                          alt={relatedArticle.title}
+                          width={80}
+                          height={80}
+                          className="rounded-lg object-cover flex-shrink-0"
+                        />
                         <div>
-                          <p className="text-sm font-medium text-gray-500 group-hover:text-green-600 transition-colors">
-                            {relatedArticle.category}
-                          </p>
-                          <h4 className="text-base font-semibold text-gray-800 group-hover:text-green-700 transition-colors leading-tight">
-                            {relatedArticle.title}
-                          </h4>
-                          <p className="text-xs text-gray-400 mt-1">
-                            {relatedArticle.readTime} min de leitura
-                          </p>
+                          <Link href={`/artigos/${relatedArticle.slug}`}>
+                            <p className="font-semibold text-gray-900 hover:text-primary-900 transition-colors line-clamp-2">
+                              {relatedArticle.title}
+                            </p>
+                          </Link>
+                          <p className="text-sm text-gray-500">{relatedArticle.readTime} min de leitura</p>
                         </div>
-                      </Link>
-                    ))
-                  ) : (
-                    <p className="text-gray-500 text-sm">Nenhum artigo relacionado encontrado.</p>
-                  )}
+                      </div>
+                    ))}
+                  </div>
                 </div>
+              )}
 
-                {/* Novos Artigos */}
-                <h3 className="text-xl font-bold text-gray-900 mb-4">Novos Artigos</h3>
-                <div className="space-y-4">
-                  {newArticles.length > 0 ? (
-                    newArticles.map((newArticle) => (
-                      <Link 
-                        key={newArticle.id} 
-                        href={`/artigos/${newArticle.slug}`} 
-                        className="flex items-center space-x-4 group"
-                      >
-                        <div className="relative w-20 h-20 flex-shrink-0 rounded-lg overflow-hidden">
-                          {newArticle.imageUrl ? (
-                            <Image
-                              src={newArticle.imageUrl}
-                              alt={newArticle.title}
-                              fill
-                              className="object-cover"
-                              sizes="80px"
-                            />
-                          ) : (
-                            <div className="absolute inset-0 bg-gray-200 flex items-center justify-center">
-                              <span className="text-gray-400 text-xs">Sem imagem</span>
-                            </div>
-                          )}
-                        </div>
+              {/* Novos Artigos */}
+              {newArticles.length > 0 && (
+                <div className="bg-white rounded-2xl shadow-lg p-6">
+                  <h3 className="text-xl font-bold text-gray-900 mb-4">Novos Artigos</h3>
+                  <div className="space-y-4">
+                    {newArticles.map(newArticle => (
+                      <div key={newArticle.slug} className="flex items-center space-x-4">
+                        <Image
+                          src={newArticle.imageUrl}
+                          alt={newArticle.title}
+                          width={80}
+                          height={80}
+                          className="rounded-lg object-cover flex-shrink-0"
+                        />
                         <div>
-                          <p className="text-sm font-medium text-gray-500 group-hover:text-green-600 transition-colors">
-                            {newArticle.category}
-                          </p>
-                          <h4 className="text-base font-semibold text-gray-800 group-hover:text-green-700 transition-colors leading-tight">
-                            {newArticle.title}
-                          </h4>
-                          <p className="text-xs text-gray-400 mt-1">
-                            {new Date(newArticle.createdAt).toLocaleDateString('pt-BR')}
-                          </p>
+                          <Link href={`/artigos/${newArticle.slug}`}>
+                            <p className="font-semibold text-gray-900 hover:text-primary-900 transition-colors line-clamp-2">
+                              {newArticle.title}
+                            </p>
+                          </Link>
+                          <p className="text-sm text-gray-500">{newArticle.readTime} min de leitura</p>
                         </div>
-                      </Link>
-                    ))
-                  ) : (
-                    <p className="text-gray-500 text-sm">Nenhum artigo novo encontrado.</p>
-                  )}
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
           </div>
         </div>
@@ -538,3 +506,5 @@ export default function ArticlePage({ params }: { params: { slug: string } }) {
     </MainLayout>
   );
 }
+
+
