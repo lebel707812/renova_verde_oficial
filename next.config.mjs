@@ -8,6 +8,7 @@ const nextConfig = {
   },
   typescript: {
     ignoreBuildErrors: true,
+    experimental:{serverAction: true}
   },
   // Adicione esta configuração para o Prisma
   webpack: (config) => {
