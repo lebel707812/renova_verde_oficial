@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
-import AdminLayout from '../../../../../components/admin/AdminLayout';
-import ArticleForm from '../../../../../components/admin/ArticleForm';
+import AdminLayout from '@/components/admin/AdminLayout';
+import ArticleForm from '@/components/admin/ArticleForm';
 
 interface Article {
   id: number;

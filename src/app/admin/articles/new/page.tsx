@@ -1,5 +1,5 @@
-import AdminLayout from "../../../components/admin/AdminLayout";
-import ArticleForm from "../../../components/admin/ArticleForm";
+import AdminLayout from '@/components/admin/AdminLayout';
+import ArticleForm from '@/components/admin/ArticleForm';
 
 export default function NewArticlePage() {
   return (
