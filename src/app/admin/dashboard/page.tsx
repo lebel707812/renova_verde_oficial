@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import AdminLayout from '@/components/admin/AdminLayout';
+import AdminLayout from "../../../components/admin/AdminLayout";
 
 interface Article {
   id: number;
