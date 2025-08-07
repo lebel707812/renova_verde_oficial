@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase';
+import { supabase, supabaseAdmin } from '@/lib/supabase';
 import { generateSlug, calculateReadTime, extractExcerpt, isValidCategory } from '@/lib/utils';
+import { getUserFromRequest } from '@/lib/auth';
 
 export const dynamic = 'force-dynamic';
 
@@ -58,18 +59,16 @@ export async function POST(request: NextRequest) {
     
     const { title, content, category, imageUrl, isPublished, authorName } = body;
 
-    // Obter a sessão do usuário para pegar o UID
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    // Tentar obter o usuário autenticado via JWT
+    const user = getUserFromRequest(request);
+    let userId = null;
 
-    if (userError || !user) {
-      console.error("Erro ao obter usuário autenticado:", userError);
-      return NextResponse.json(
-        { error: "Usuário não autenticado ou erro ao obter sessão" },
-        { status: 401 }
-      );
+    if (user) {
+      userId = user.id;
+      console.log('Authenticated user:', user.email);
+    } else {
+      console.log('No authenticated user found, creating article without user association');
     }
-
-    const userId = user.id; // ID do usuário autenticado
 
     if (!title || !content || !category) {
       console.log('Missing required fields');
@@ -98,7 +97,7 @@ export async function POST(request: NextRequest) {
     let counter = 1;
     
     while (true) {
-      const { data: existingArticle, error: existingError } = await supabase
+      const { data: existingArticle, error: existingError } = await supabaseAdmin
         .from('articles')
         .select('slug')
         .eq('slug', finalSlug)
@@ -117,22 +116,27 @@ export async function POST(request: NextRequest) {
       counter++;
     }
 
-    const { data: article, error } = await supabase
+    // Preparar dados do artigo
+    const articleData: any = {
+      title,
+      content,
+      excerpt,
+      slug: finalSlug,
+      category,
+      imageUrl: imageUrl || null,
+      readTime,
+      isPublished: Boolean(isPublished),
+      authorName: authorName || null,
+    };
+
+    // Adicionar user_id apenas se o usuário estiver autenticado
+    if (userId) {
+      articleData.user_id = userId;
+    }
+
+    const { data: article, error } = await supabaseAdmin
       .from('articles')
-      .insert([
-        {
-          title,
-          content,
-          excerpt,
-          slug: finalSlug,
-          category,
-          imageUrl: imageUrl || null,
-          readTime,
-          isPublished: Boolean(isPublished),
-          authorName: authorName || null,
-          user_id: userId,
-        },
-      ])
+      .insert([articleData])
       .select();
 
     if (error) {
