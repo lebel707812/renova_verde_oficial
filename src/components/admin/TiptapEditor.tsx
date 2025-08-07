@@ -25,23 +25,42 @@ const TiptapEditor: React.FC<TiptapEditorProps> = ({
     setIsUploading(true);
     
     try {
+      console.log('TiptapEditor: Starting image upload:', file.name, file.type, file.size);
+      
       const formData = new FormData();
-      formData.append('file', file); // A API espera 'file', não 'image'
+      formData.append('file', file);
 
       const response = await fetch('/api/upload', {
         method: 'POST',
         body: formData,
       });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Falha no upload da imagem');
+      console.log('TiptapEditor: Upload response status:', response.status);
+
+      // Verificar se a resposta é JSON válida
+      const contentType = response.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        console.error('TiptapEditor: Response is not JSON:', contentType);
+        const text = await response.text();
+        console.error('TiptapEditor: Response text:', text);
+        throw new Error('Erro no servidor: resposta inválida');
       }
 
       const data = await response.json();
+      console.log('TiptapEditor: Upload response data:', data);
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Falha no upload da imagem');
+      }
+
+      if (!data.success || !data.url) {
+        throw new Error('Resposta inválida do servidor');
+      }
+
+      console.log('TiptapEditor: Image uploaded successfully:', data.url);
       return data.url;
     } catch (error) {
-      console.error('Erro no upload da imagem:', error);
+      console.error('TiptapEditor: Erro no upload da imagem:', error);
       throw error;
     } finally {
       setIsUploading(false);

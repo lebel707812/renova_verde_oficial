@@ -111,6 +111,8 @@ export default function ArticleForm({ article, isEditing = false }: ArticleFormP
     setError('');
 
     try {
+      console.log('Starting image upload:', file.name, file.type, file.size);
+      
       const formData = new FormData();
       formData.append('file', file);
 
@@ -119,15 +121,31 @@ export default function ArticleForm({ article, isEditing = false }: ArticleFormP
         body: formData,
       });
 
-      const data = await response.json();
+      console.log('Upload response status:', response.status);
+      
+      // Verificar se a resposta é JSON válida
+      const contentType = response.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        console.error('Response is not JSON:', contentType);
+        const text = await response.text();
+        console.error('Response text:', text);
+        setError('Erro no servidor: resposta inválida');
+        return;
+      }
 
-      if (response.ok) {
+      const data = await response.json();
+      console.log('Upload response data:', data);
+
+      if (response.ok && data.success && data.url) {
         setFormData(prev => ({ ...prev, imageUrl: data.url }));
+        console.log('Image uploaded successfully:', data.url);
       } else {
+        console.error('Upload failed:', data);
         setError(data.error || 'Erro ao fazer upload da imagem');
       }
-    } catch {
-      setError('Erro ao fazer upload da imagem');
+    } catch (error) {
+      console.error('Upload error:', error);
+      setError('Erro ao fazer upload da imagem: ' + (error as Error).message);
     } finally {
       setIsUploading(false);
     }
