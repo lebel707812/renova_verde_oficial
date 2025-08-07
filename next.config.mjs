@@ -8,11 +8,9 @@ const nextConfig = {
   },
   typescript: {
     ignoreBuildErrors: true,
-    experimental:{serverAction: true}
   },
   // Adicione esta configuração para o Prisma
   webpack: (config) => {
-    config.externals = [...(config.externals || []), '@prisma/client'];
     return config;
   }
 };
