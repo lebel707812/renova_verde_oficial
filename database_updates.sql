@@ -26,3 +26,11 @@ FOR SELECT
 TO anon, authenticated
 USING (true);
 
+-- Adicionar DEFAULT e ON UPDATE para a coluna updatedAt na tabela articles
+ALTER TABLE public.articles ALTER COLUMN "updatedAt" SET DEFAULT CURRENT_TIMESTAMP;
+ALTER TABLE public.articles ALTER COLUMN "updatedAt" SET NOT NULL;
+CREATE TRIGGER set_timestamp
+BEFORE UPDATE ON public.articles
+FOR EACH ROW
+EXECUTE PROCEDURE public.moddatetime("updatedAt");
+

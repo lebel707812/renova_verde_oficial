@@ -117,6 +117,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Preparar dados do artigo
+    const now = new Date().toISOString();
     const articleData: any = {
       title,
       content,
@@ -127,6 +128,7 @@ export async function POST(request: NextRequest) {
       readTime,
       isPublished: Boolean(isPublished),
       authorName: authorName || null,
+      updatedAt: now,
     };
 
     // Adicionar user_id apenas se o usuário estiver autenticado
