@@ -1,6 +1,6 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import  prisma  from './prisma';
+import { supabaseAdmin } from './supabase';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'fallback-secret';
 
@@ -35,38 +35,53 @@ export function verifyToken(token: string): AuthUser | null {
 }
 
 export async function authenticateUser(email: string, password: string): Promise<AuthUser | null> {
-  const user = await prisma.user.findUnique({
-    where: { email }
-  });
+  const { data, error } = await supabaseAdmin
+    .from('users')
+    .select('*')
+    .eq('email', email)
+    .single();
 
-  if (!user) {
+  if (error && error.code !== 'PGRST116') { // PGRST116 means no rows found
+    console.error('Error fetching user:', error);
     return null;
   }
 
-  const isValid = await verifyPassword(password, user.passwordHash);
+  if (!data) {
+    return null;
+  }
+
+  const isValid = await verifyPassword(password, data.passwordHash);
   if (!isValid) {
     return null;
   }
 
   return {
-    id: user.id,
-    email: user.email
+    id: data.id,
+    email: data.email
   };
 }
 
 export async function createUser(email: string, password: string): Promise<AuthUser> {
   const hashedPassword = await hashPassword(password);
   
-  const user = await prisma.user.create({
-    data: {
-      email,
-      passwordHash: hashedPassword
-    }
-  });
+  const { data, error } = await supabaseAdmin
+    .from('users')
+    .insert([
+      {
+        email,
+        passwordHash: hashedPassword
+      }
+    ])
+    .select();
+
+  if (error) {
+    console.error('Error creating user:', error);
+    throw error;
+  }
 
   return {
-    id: user.id,
-    email: user.email
+    id: data[0].id,
+    email: data[0].email
   };
 }
 

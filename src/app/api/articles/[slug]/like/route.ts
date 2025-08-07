@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import  prisma  from '@/lib/prisma';
+import { supabase, supabaseAdmin } from '@/lib/supabase';
 
 // Função auxiliar para determinar se é um ID numérico ou slug
 function isNumericId(param: string): boolean {
@@ -17,13 +17,27 @@ export async function POST(request: NextRequest, { params }: { params: { slug: s
 
     if (isNumericId(slug)) {
       const id = parseInt(slug);
-      article = await prisma.article.findUnique({
-        where: { id }
-      });
+      const { data, error } = await supabase
+        .from('articles')
+        .select('*')
+        .eq('id', id)
+        .single();
+      
+      if (error && error.code !== 'PGRST116') {
+        throw error;
+      }
+      article = data;
     } else {
-      article = await prisma.article.findUnique({
-        where: { slug }
-      });
+      const { data, error } = await supabase
+        .from('articles')
+        .select('*')
+        .eq('slug', slug)
+        .single();
+      
+      if (error && error.code !== 'PGRST116') {
+        throw error;
+      }
+      article = data;
     }
 
     if (!article) {
@@ -35,14 +49,18 @@ export async function POST(request: NextRequest, { params }: { params: { slug: s
     }
 
     // Atualizar o artigo com o novo número de likes
-    const updatedArticle = await prisma.article.update({
-      where: { id: article.id },
-      data: {
-        likes: {
-          increment: 1,
-        },
-      },
-    });
+    const { data: updatedArticle, error: updateError } = await supabaseAdmin
+      .from('articles')
+      .update({
+        likes: article.likes + 1
+      })
+      .eq('id', article.id)
+      .select()
+      .single();
+
+    if (updateError) {
+      throw updateError;
+    }
 
     console.log('Article liked successfully. New likes count:', updatedArticle.likes);
     return NextResponse.json({ likes: updatedArticle.likes });

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import  prisma  from '@/lib/prisma';
+import { supabase } from '@/lib/supabase';
 import { generateSlug, calculateReadTime, extractExcerpt, isValidCategory } from '@/lib/utils';
 
 export const dynamic = 'force-dynamic';
@@ -12,21 +12,31 @@ export async function GET(request: NextRequest) {
     const published = searchParams.get('published');
     const featured = searchParams.get('featured');
 
-    const where: Record<string, unknown> = {};
+    let query = supabase.from('articles').select('*');
 
     if (category) {
-      where.category = category;
+      query = query.eq('category', category);
     }
 
     if (published === 'true') {
-      where.isPublished = true;
+      query = query.eq('isPublished', true);
     }
 
-    const articles = await prisma.article.findMany({
-      where,
-      orderBy: { createdAt: 'desc' },
-      take: featured === 'true' ? 6 : undefined
-    });
+    query = query.order('createdAt', { ascending: false });
+
+    if (featured === 'true') {
+      query = query.limit(6);
+    }
+
+    const { data: articles, error } = await query;
+
+    if (error) {
+      console.error('Error fetching articles:', error);
+      return NextResponse.json(
+        { error: 'Erro ao buscar artigos' },
+        { status: 500 }
+      );
+    }
 
     return NextResponse.json(articles);
   } catch (error) {
@@ -75,10 +85,17 @@ export async function POST(request: NextRequest) {
     let counter = 1;
     
     while (true) {
-      const existingArticle = await prisma.article.findUnique({
-        where: { slug: finalSlug }
-      });
+      const { data: existingArticle, error: existingError } = await supabase
+        .from('articles')
+        .select('slug')
+        .eq('slug', finalSlug)
+        .single();
       
+      if (existingError && existingError.code !== 'PGRST116') { // PGRST116 means no rows found
+        console.error('Error checking existing slug:', existingError);
+        throw existingError;
+      }
+
       if (!existingArticle) {
         break;
       }
@@ -87,22 +104,33 @@ export async function POST(request: NextRequest) {
       counter++;
     }
 
-    const article = await prisma.article.create({
-      data: {
-        title,
-        content,
-        excerpt,
-        slug: finalSlug,
-        category,
-        imageUrl: imageUrl || null,
-        readTime,
-        isPublished: Boolean(isPublished),
-        authorName: authorName || null
-      }
-    });
+    const { data: article, error } = await supabase
+      .from('articles')
+      .insert([
+        {
+          title,
+          content,
+          excerpt,
+          slug: finalSlug,
+          category,
+          imageUrl: imageUrl || null,
+          readTime,
+          isPublished: Boolean(isPublished),
+          authorName: authorName || null,
+        },
+      ])
+      .select();
+
+    if (error) {
+      console.error('Error creating article:', error);
+      return NextResponse.json(
+        { error: 'Erro ao criar artigo: ' + error.message },
+        { status: 500 }
+      );
+    }
 
     console.log('Article created:', article);
-    return NextResponse.json(article, { status: 201 });
+    return NextResponse.json(article[0], { status: 201 });
   } catch (error) {
     console.error('Error creating article:', error);
     return NextResponse.json(

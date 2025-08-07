@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import  prisma  from '@/lib/prisma';
-
+import { supabase } from '@/lib/supabase';
 
 export const dynamic = 'force-dynamic';
 
@@ -20,73 +19,75 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const skip = (page - 1) * limit;
+    const offset = (page - 1) * limit;
 
-    // Construir condições de busca
-    const where: { [key: string]: any } = {
-      isPublished: true, // Apenas artigos publicados
-    };
+    let articlesQuery = supabase
+      .from('articles')
+      .select('id, title, excerpt, slug, category, imageUrl, readTime, createdAt')
+      .eq('isPublished', true);
 
     if (query) {
-      where.OR = [
-        {
-          title: {
-            contains: query
-          }
-        },
-        {
-          content: {
-            contains: query
-          }
-        },
-        {
-          excerpt: {
-            contains: query
-          }
-        }
-      ];
+      articlesQuery = articlesQuery.or(
+        `title.ilike.%${query}%,content.ilike.%${query}%,excerpt.ilike.%${query}%`
+      );
     }
 
     if (category) {
-      where.category = category;
+      articlesQuery = articlesQuery.eq('category', category);
     }
 
-    // Buscar artigos com paginação
-    const [articles, totalCount] = await Promise.all([
-      prisma.article.findMany({
-        where,
-        orderBy: { createdAt: 'desc' },
-        skip,
-        take: limit,
-        select: {
-          id: true,
-          title: true,
-          excerpt: true,
-          slug: true,
-          category: true,
-          imageUrl: true,
-          readTime: true,
-          createdAt: true,
-        }
-      }),
-      prisma.article.count({ where })
-    ]);
+    const { data: articles, error: articlesError } = await articlesQuery
+      .order('createdAt', { ascending: false })
+      .range(offset, offset + limit - 1);
 
-    const totalPages = Math.ceil(totalCount / limit);
+    if (articlesError) {
+      console.error('Error searching articles:', articlesError);
+      return NextResponse.json(
+        { error: 'Erro ao buscar artigos' },
+        { status: 500 }
+      );
+    }
+
+    // Para obter o total de artigos, faremos uma segunda consulta com count
+    let countQuery = supabase
+      .from('articles')
+      .select('count', { count: 'exact' })
+      .eq('isPublished', true);
+
+    if (query) {
+      countQuery = countQuery.or(
+        `title.ilike.%${query}%,content.ilike.%${query}%,excerpt.ilike.%${query}%`
+      );
+    }
+
+    if (category) {
+      countQuery = countQuery.eq('category', category);
+    }
+
+    const { count: totalCount, error: countError } = await countQuery;
+
+    if (countError) {
+      console.error('Error counting articles:', countError);
+      return NextResponse.json(
+        { error: 'Erro ao contar artigos' },
+        { status: 500 }
+      );
+    }
+
+    const totalPages = Math.ceil((totalCount || 0) / limit);
 
     return NextResponse.json({
       articles,
       pagination: {
         currentPage: page,
         totalPages,
-        totalCount,
+        totalCount: totalCount || 0,
         hasNextPage: page < totalPages,
         hasPreviousPage: page > 1,
       },
       query: query || '',
       category: category || '',
     });
-
   } catch (error) {
     console.error('Error searching articles:', error);
     return NextResponse.json(

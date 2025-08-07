@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import  prisma  from '@/lib/prisma';
+import { supabase, supabaseAdmin } from '@/lib/supabase';
 
 // Função auxiliar para determinar se é um ID numérico ou slug
 function isNumericId(param: string): boolean {
@@ -19,13 +19,27 @@ export async function GET(
 
     if (isNumericId(slug)) {
       const id = parseInt(slug);
-      article = await prisma.article.findUnique({
-        where: { id }
-      });
+      const { data, error } = await supabase
+        .from('articles')
+        .select('*')
+        .eq('id', id)
+        .single();
+      
+      if (error && error.code !== 'PGRST116') {
+        throw error;
+      }
+      article = data;
     } else {
-      article = await prisma.article.findUnique({
-        where: { slug }
-      });
+      const { data, error } = await supabase
+        .from('articles')
+        .select('*')
+        .eq('slug', slug)
+        .single();
+      
+      if (error && error.code !== 'PGRST116') {
+        throw error;
+      }
+      article = data;
     }
 
     if (!article) {
@@ -35,25 +49,39 @@ export async function GET(
       );
     }
 
-    // Buscar comentários com suas respostas
-    const comments = await prisma.comment.findMany({
-      where: {
-        articleId: article.id,
-        parentId: null // Apenas comentários principais
-      },
-      include: {
-        replies: {
-          orderBy: {
-            createdAt: 'asc'
-          }
-        }
-      },
-      orderBy: {
-        createdAt: 'desc'
-      }
-    });
+    // Buscar comentários principais
+    const { data: comments, error: commentsError } = await supabase
+      .from('comments')
+      .select('*')
+      .eq('articleId', article.id)
+      .is('parentId', null)
+      .order('createdAt', { ascending: false });
 
-    return NextResponse.json(comments);
+    if (commentsError) {
+      throw commentsError;
+    }
+
+    // Buscar respostas para cada comentário
+    const commentsWithReplies = await Promise.all(
+      comments.map(async (comment) => {
+        const { data: replies, error: repliesError } = await supabase
+          .from('comments')
+          .select('*')
+          .eq('parentId', comment.id)
+          .order('createdAt', { ascending: true });
+
+        if (repliesError) {
+          throw repliesError;
+        }
+
+        return {
+          ...comment,
+          replies: replies || []
+        };
+      })
+    );
+
+    return NextResponse.json(commentsWithReplies);
   } catch (error) {
     console.error('Error fetching comments:', error);
     return NextResponse.json(
@@ -103,13 +131,27 @@ export async function POST(
 
     if (isNumericId(slug)) {
       const id = parseInt(slug);
-      article = await prisma.article.findUnique({
-        where: { id }
-      });
+      const { data, error } = await supabase
+        .from('articles')
+        .select('*')
+        .eq('id', id)
+        .single();
+      
+      if (error && error.code !== 'PGRST116') {
+        throw error;
+      }
+      article = data;
     } else {
-      article = await prisma.article.findUnique({
-        where: { slug }
-      });
+      const { data, error } = await supabase
+        .from('articles')
+        .select('*')
+        .eq('slug', slug)
+        .single();
+      
+      if (error && error.code !== 'PGRST116') {
+        throw error;
+      }
+      article = data;
     }
 
     if (!article) {
@@ -121,9 +163,15 @@ export async function POST(
 
     // Se for uma resposta, verificar se o comentário pai existe
     if (parentId) {
-      const parentComment = await prisma.comment.findUnique({
-        where: { id: parseInt(parentId) }
-      });
+      const { data: parentComment, error: parentError } = await supabase
+        .from('comments')
+        .select('*')
+        .eq('id', parseInt(parentId))
+        .single();
+
+      if (parentError && parentError.code !== 'PGRST116') {
+        throw parentError;
+      }
 
       if (!parentComment) {
         return NextResponse.json(
@@ -141,19 +189,39 @@ export async function POST(
     }
 
     // Criar o comentário
-    const comment = await prisma.comment.create({
-      data: {
-        name: name.trim(),
-        content: content.trim(),
-        articleId: article.id,
-        parentId: parentId ? parseInt(parentId) : null
-      },
-      include: {
-        replies: true
-      }
-    });
+    const { data: comment, error: commentError } = await supabaseAdmin
+      .from('comments')
+      .insert([
+        {
+          name: name.trim(),
+          content: content.trim(),
+          articleId: article.id,
+          parentId: parentId ? parseInt(parentId) : null
+        }
+      ])
+      .select()
+      .single();
 
-    return NextResponse.json(comment, { status: 201 });
+    if (commentError) {
+      throw commentError;
+    }
+
+    // Buscar respostas se existirem
+    const { data: replies, error: repliesError } = await supabase
+      .from('comments')
+      .select('*')
+      .eq('parentId', comment.id);
+
+    if (repliesError) {
+      throw repliesError;
+    }
+
+    const commentWithReplies = {
+      ...comment,
+      replies: replies || []
+    };
+
+    return NextResponse.json(commentWithReplies, { status: 201 });
   } catch (error) {
     console.error('Error creating comment:', error);
     return NextResponse.json(

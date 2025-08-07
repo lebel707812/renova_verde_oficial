@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import  prisma  from '@/lib/prisma';
+import { supabase, supabaseAdmin } from '@/lib/supabase';
 import { generateSlug, calculateReadTime, extractExcerpt, isValidCategory } from '@/lib/utils';
 
 // Função auxiliar para determinar se é um ID numérico ou slug
@@ -27,13 +27,27 @@ export async function GET(
     // Se for um número, buscar por ID, senão por slug
     if (isNumericId(slug)) {
       const id = parseInt(slug);
-      article = await prisma.article.findUnique({
-        where: { id }
-      });
+      const { data, error } = await supabase
+        .from('articles')
+        .select('*')
+        .eq('id', id)
+        .single();
+      
+      if (error && error.code !== 'PGRST116') {
+        throw error;
+      }
+      article = data;
     } else {
-      article = await prisma.article.findUnique({
-        where: { slug }
-      });
+      const { data, error } = await supabase
+        .from('articles')
+        .select('*')
+        .eq('slug', slug)
+        .single();
+      
+      if (error && error.code !== 'PGRST116') {
+        throw error;
+      }
+      article = data;
     }
 
     if (!article) {
@@ -71,13 +85,27 @@ export async function PUT(
 
     if (isNumericId(param)) {
       const id = parseInt(param);
-      existingArticle = await prisma.article.findUnique({
-        where: { id }
-      });
+      const { data, error } = await supabase
+        .from('articles')
+        .select('*')
+        .eq('id', id)
+        .single();
+      
+      if (error && error.code !== 'PGRST116') {
+        throw error;
+      }
+      existingArticle = data;
     } else {
-      existingArticle = await prisma.article.findUnique({
-        where: { slug: param }
-      });
+      const { data, error } = await supabase
+        .from('articles')
+        .select('*')
+        .eq('slug', param)
+        .single();
+      
+      if (error && error.code !== 'PGRST116') {
+        throw error;
+      }
+      existingArticle = data;
     }
 
     if (!existingArticle) {
@@ -115,9 +143,15 @@ export async function PUT(
 
     // Verificar se o novo slug já existe (exceto para o artigo atual)
     if (newSlug !== existingArticle.slug) {
-      const slugExists = await prisma.article.findUnique({
-        where: { slug: newSlug }
-      });
+      const { data: slugExists, error: slugError } = await supabase
+        .from('articles')
+        .select('slug')
+        .eq('slug', newSlug)
+        .single();
+
+      if (slugError && slugError.code !== 'PGRST116') {
+        throw slugError;
+      }
 
       if (slugExists) {
         // Gerar slug único
@@ -125,9 +159,15 @@ export async function PUT(
         let counter = 1;
         
         while (true) {
-          const existingSlug = await prisma.article.findUnique({
-            where: { slug: finalSlug }
-          });
+          const { data: existingSlug, error: existingError } = await supabase
+            .from('articles')
+            .select('slug')
+            .eq('slug', finalSlug)
+            .single();
+          
+          if (existingError && existingError.code !== 'PGRST116') {
+            throw existingError;
+          }
           
           if (!existingSlug) {
             break;
@@ -142,9 +182,9 @@ export async function PUT(
     }
 
     // Atualizar artigo
-    const updatedArticle = await prisma.article.update({
-      where: { id: existingArticle.id },
-      data: {
+    const { data: updatedArticle, error: updateError } = await supabaseAdmin
+      .from('articles')
+      .update({
         title,
         content,
         excerpt,
@@ -153,9 +193,15 @@ export async function PUT(
         imageUrl: imageUrl || null,
         readTime,
         isPublished: Boolean(isPublished),
-        updatedAt: new Date()
-      }
-    });
+        updatedAt: new Date().toISOString()
+      })
+      .eq('id', existingArticle.id)
+      .select()
+      .single();
+
+    if (updateError) {
+      throw updateError;
+    }
 
     console.log('Article updated:', updatedArticle);
     return NextResponse.json(updatedArticle);
@@ -184,13 +230,27 @@ export async function DELETE(
 
     if (isNumericId(param)) {
       const id = parseInt(param);
-      existingArticle = await prisma.article.findUnique({
-        where: { id }
-      });
+      const { data, error } = await supabase
+        .from('articles')
+        .select('*')
+        .eq('id', id)
+        .single();
+      
+      if (error && error.code !== 'PGRST116') {
+        throw error;
+      }
+      existingArticle = data;
     } else {
-      existingArticle = await prisma.article.findUnique({
-        where: { slug: param }
-      });
+      const { data, error } = await supabase
+        .from('articles')
+        .select('*')
+        .eq('slug', param)
+        .single();
+      
+      if (error && error.code !== 'PGRST116') {
+        throw error;
+      }
+      existingArticle = data;
     }
 
     if (!existingArticle) {
@@ -201,9 +261,14 @@ export async function DELETE(
     }
 
     // Deletar usando o ID
-    await prisma.article.delete({
-      where: { id: existingArticle.id }
-    });
+    const { error: deleteError } = await supabaseAdmin
+      .from('articles')
+      .delete()
+      .eq('id', existingArticle.id);
+
+    if (deleteError) {
+      throw deleteError;
+    }
 
     return NextResponse.json({ success: true });
   } catch (error) {

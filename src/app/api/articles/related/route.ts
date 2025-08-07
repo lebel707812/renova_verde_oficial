@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import  prisma  from '@/lib/prisma';
-
+import { supabase } from '@/lib/supabase';
 
 export const dynamic = 'force-dynamic';
 
@@ -79,9 +78,16 @@ export async function GET(request: NextRequest) {
     }
 
     // Buscar o artigo atual
-    const currentArticle = await prisma.article.findUnique({
-      where: { slug, isPublished: true }
-    });
+    const { data: currentArticle, error: currentError } = await supabase
+      .from('articles')
+      .select('*')
+      .eq('slug', slug)
+      .eq('isPublished', true)
+      .single();
+
+    if (currentError && currentError.code !== 'PGRST116') {
+      throw currentError;
+    }
 
     if (!currentArticle) {
       return NextResponse.json(
@@ -94,13 +100,16 @@ export async function GET(request: NextRequest) {
     const keywords = extractKeywords(currentArticle.content, currentArticle.title);
 
     // Buscar todos os outros artigos publicados
-    const allArticles = await prisma.article.findMany({
-      where: {
-        isPublished: true,
-        id: { not: currentArticle.id } // Excluir o artigo atual
-      },
-      orderBy: { createdAt: 'desc' }
-    });
+    const { data: allArticles, error: articlesError } = await supabase
+      .from('articles')
+      .select('*')
+      .eq('isPublished', true)
+      .neq('id', currentArticle.id)
+      .order('createdAt', { ascending: false });
+
+    if (articlesError) {
+      throw articlesError;
+    }
 
     // Calcular relevância e ordenar
     const articlesWithRelevance = allArticles.map(article => ({
@@ -128,14 +137,17 @@ export async function GET(request: NextRequest) {
     }
 
     // Buscar os 3 artigos mais recentes (novos artigos)
-    const newArticles = await prisma.article.findMany({
-      where: {
-        isPublished: true,
-        id: { not: currentArticle.id } // Excluir o artigo atual
-      },
-      orderBy: { createdAt: 'desc' },
-      take: 3
-    });
+    const { data: newArticles, error: newError } = await supabase
+      .from('articles')
+      .select('*')
+      .eq('isPublished', true)
+      .neq('id', currentArticle.id)
+      .order('createdAt', { ascending: false })
+      .limit(3);
+
+    if (newError) {
+      throw newError;
+    }
 
     // Remover a propriedade relevance antes de retornar
     const cleanRelatedArticles = relatedArticles.map((article: any) => {
