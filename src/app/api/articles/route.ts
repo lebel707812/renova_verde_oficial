@@ -58,6 +58,19 @@ export async function POST(request: NextRequest) {
     
     const { title, content, category, imageUrl, isPublished, authorName } = body;
 
+    // Obter a sessão do usuário para pegar o UID
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+
+    if (userError || !user) {
+      console.error("Erro ao obter usuário autenticado:", userError);
+      return NextResponse.json(
+        { error: "Usuário não autenticado ou erro ao obter sessão" },
+        { status: 401 }
+      );
+    }
+
+    const userId = user.id; // ID do usuário autenticado
+
     if (!title || !content || !category) {
       console.log('Missing required fields');
       return NextResponse.json(
@@ -117,6 +130,7 @@ export async function POST(request: NextRequest) {
           readTime,
           isPublished: Boolean(isPublished),
           authorName: authorName || null,
+          user_id: userId,
         },
       ])
       .select();
