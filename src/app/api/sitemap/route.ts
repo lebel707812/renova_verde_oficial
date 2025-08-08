@@ -10,7 +10,7 @@ export async function POST(request: NextRequest) {
     const { data: articles, error } = await supabase
       .from('articles')
       .select('slug, updatedAt')
-      .eq('is_published', true)
+      .eq('isPublished', true)
       .order('updatedAt', { ascending: false });
 
     if (error) {
@@ -133,7 +133,7 @@ export async function GET(request: NextRequest) {
     const { data: articles, error } = await supabase
       .from('articles')
       .select('slug, updatedAt')
-      .eq('is_published', true)
+      .eq('isPublished', true)
       .order('updatedAt', { ascending: false });
 
     if (error) {

@@ -66,7 +66,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const { data: articles, error } = await supabase
     .from('articles')
     .select('slug, updatedAt')
-    .eq('is_published', true);
+    .eq('isPublished', true);
 
   if (error) {
     console.error('Error fetching articles for sitemap:', error);
