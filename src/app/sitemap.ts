@@ -1,7 +1,13 @@
 import { MetadataRoute } from 'next';
 import { SITE_CONFIG } from '@/lib/constants';
+import { createClient } from '@supabase/supabase-js';
 
-export default function sitemap(): MetadataRoute.Sitemap {
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = SITE_CONFIG.url;
   
   // Páginas estáticas
@@ -56,16 +62,26 @@ export default function sitemap(): MetadataRoute.Sitemap {
     },
   ];
 
-  // TODO: Adicionar páginas dinâmicas de artigos quando a API estiver disponível
-  // const articles = await getArticles();
-  // const articlePages = articles.map((article) => ({
-  //   url: `${baseUrl}/blog/${article.slug}`,
-  //   lastModified: new Date(article.updatedAt),
-  //   changeFrequency: 'weekly' as const,
-  //   priority: 0.7,
-  // }));
+  // Páginas dinâmicas de artigos
+  const { data: articles, error } = await supabase
+    .from('articles')
+    .select('slug, updated_at')
+    .eq('is_published', true);
 
-  // TODO: Adicionar páginas de categorias dinâmicas
+  if (error) {
+    console.error('Error fetching articles for sitemap:', error);
+    return [...staticPages];
+  }
+
+  const articlePages = articles.map((article: any) => ({
+    url: `${baseUrl}/artigos/${article.slug}`,
+    lastModified: new Date(article.updated_at),
+    changeFrequency: 'weekly' as const,
+    priority: 0.7,
+  }));
+
+  // Páginas de categorias dinâmicas (exemplo, se houver uma tabela de categorias no Supabase)
+  // Por enquanto, mantendo as categorias estáticas como no código original, mas o ideal seria buscar do DB
   const categories = [
     'jardinagem',
     'energia-renovavel', 
@@ -86,7 +102,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
   return [
     ...staticPages,
     ...categoryPages,
-    // ...articlePages, // Adicionar quando a API estiver disponível
+    ...articlePages,
   ];
 }
+
 

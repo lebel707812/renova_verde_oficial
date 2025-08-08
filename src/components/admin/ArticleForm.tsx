@@ -13,6 +13,8 @@ interface Article {
   category: string;
   imageUrl?: string;
   isPublished: boolean;
+  keywords?: string;
+  metaDescription?: string;
 }
 
 interface ArticleFormProps {
@@ -27,6 +29,8 @@ export default function ArticleForm({ article, isEditing = false }: ArticleFormP
     category: article?.category || 'Jardinagem',
     imageUrl: article?.imageUrl || '',
     isPublished: article?.isPublished || false,
+    keywords: article?.keywords || '',
+    metaDescription: article?.metaDescription || '',
   });
   
   const [isLoading, setIsLoading] = useState(false);
@@ -93,7 +97,7 @@ export default function ArticleForm({ article, isEditing = false }: ArticleFormP
         clearTimeout(autoSaveTimeoutRef.current);
       }
     };
-  }, [formData.title, formData.content, formData.category, autoSave]);
+  }, [formData.title, formData.content, formData.category, formData.keywords, formData.metaDescription, autoSave]);
 
   const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
@@ -200,60 +204,36 @@ export default function ArticleForm({ article, isEditing = false }: ArticleFormP
     }
   };
 
-  const getAutoSaveStatusColor = () => {
-    switch (autoSaveStatus) {
-      case 'saving':
-        return 'text-blue-600';
-      case 'saved':
-        return 'text-green-600';
-      case 'error':
-        return 'text-red-600';
-      default:
-        return 'text-gray-500';
+  // Função para gerar meta description automaticamente baseada no conteúdo
+  const generateMetaDescription = () => {
+    if (formData.content) {
+      const plainText = formData.content.replace(/<[^>]*>/g, '');
+      const description = plainText.substring(0, 150).trim() + '...';
+      setFormData(prev => ({ ...prev, metaDescription: description }));
     }
   };
 
-
-
   return (
-    <div className="max-w-7xl mx-auto">
-      <div className="bg-white shadow-sm rounded-lg">
-        <div className="px-6 py-4 border-b border-gray-200">
-          <div className="flex justify-between items-center">
-            <div>
-              <h2 className="text-lg font-medium text-gray-900">
-                {isEditing ? 'Editar Artigo' : 'Novo Artigo'}
-              </h2>
-            </div>
-            <div className="flex items-center space-x-4">
-              {/* Status do Auto-save */}
-              <div className={`text-xs ${getAutoSaveStatusColor()} flex items-center`}>
-                {autoSaveStatus === 'saving' && (
-                  <svg className="animate-spin -ml-1 mr-1 h-3 w-3" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                )}
-                {getAutoSaveStatusText()}
-              </div>
-              
-              {/* Toggle Preview */}
-              <button
-                type="button"
-                onClick={() => setShowPreview(!showPreview)}
-                className={`px-3 py-1 text-xs rounded-md border transition-colors ${
-                  showPreview 
-                    ? 'bg-green-100 text-green-700 border-green-300' 
-                    : 'bg-gray-100 text-gray-700 border-gray-300 hover:bg-gray-200'
-                }`}
-              >
-                {showPreview ? '📝 Editor' : '👁️ Preview'}
-              </button>
-            </div>
+    <div className="max-w-4xl mx-auto p-6">
+      <div className="bg-white rounded-lg shadow-md p-6">
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-2xl font-bold text-gray-900">
+            {isEditing ? 'Editar Artigo' : 'Novo Artigo'}
+          </h1>
+          
+          {/* Status do auto-save */}
+          <div className="text-sm text-gray-500">
+            {getAutoSaveStatusText()}
           </div>
         </div>
 
-        <form className="p-6 space-y-6">
+        {error && (
+          <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-md">
+            <p className="text-red-600">{error}</p>
+          </div>
+        )}
+
+        <form onSubmit={(e) => handleSubmit(e)} className="space-y-6">
           {/* Título */}
           <div>
             <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-2">
@@ -263,55 +243,85 @@ export default function ArticleForm({ article, isEditing = false }: ArticleFormP
               type="text"
               id="title"
               name="title"
-              required
               value={formData.title}
               onChange={handleInputChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500 text-lg"
+              required
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
               placeholder="Digite o título do artigo"
             />
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Categoria */}
-            <div>
-              <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-2">
-                Categoria *
-              </label>
-              <select
-                id="category"
-                name="category"
-                required
-                value={formData.category}
-                onChange={handleInputChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500"
-              >
-                {ARTICLE_CATEGORIES.map(category => (
-                  <option key={category} value={category}>
-                    {category}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* Status de Publicação */}
-            <div className="flex items-center justify-center">
-              <div className="flex items-center">
-                <input
-                  type="checkbox"
-                  id="isPublished"
-                  name="isPublished"
-                  checked={formData.isPublished}
-                  onChange={handleInputChange}
-                  className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
-                />
-                <label htmlFor="isPublished" className="ml-2 block text-sm text-gray-900">
-                  Publicar artigo imediatamente
-                </label>
-              </div>
-            </div>
+          {/* Keywords para SEO */}
+          <div>
+            <label htmlFor="keywords" className="block text-sm font-medium text-gray-700 mb-2">
+              Palavras-chave (SEO)
+              <span className="text-gray-500 text-xs ml-2">
+                Ex: "Reaproveitamento de Água da Chuva" - usado para gerar URL amigável
+              </span>
+            </label>
+            <input
+              type="text"
+              id="keywords"
+              name="keywords"
+              value={formData.keywords}
+              onChange={handleInputChange}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+              placeholder="Ex: Reaproveitamento de Água da Chuva"
+            />
+            <p className="text-xs text-gray-500 mt-1">
+              Se preenchido, será usado para gerar uma URL mais curta e amigável
+            </p>
           </div>
 
-          {/* Upload de Imagem de Destaque */}
+          {/* Meta Description */}
+          <div>
+            <label htmlFor="metaDescription" className="block text-sm font-medium text-gray-700 mb-2">
+              Meta Description (SEO)
+              <button
+                type="button"
+                onClick={generateMetaDescription}
+                className="ml-2 text-xs text-green-600 hover:text-green-800 underline"
+              >
+                Gerar automaticamente
+              </button>
+            </label>
+            <textarea
+              id="metaDescription"
+              name="metaDescription"
+              value={formData.metaDescription}
+              onChange={handleInputChange}
+              rows={3}
+              maxLength={160}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+              placeholder="Descrição que aparecerá nos resultados de busca (máx. 160 caracteres)"
+            />
+            <p className="text-xs text-gray-500 mt-1">
+              {formData.metaDescription.length}/160 caracteres
+            </p>
+          </div>
+
+          {/* Categoria */}
+          <div>
+            <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-2">
+              Categoria *
+            </label>
+            <select
+              id="category"
+              name="category"
+              value={formData.category}
+              onChange={handleInputChange}
+              required
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+            >
+              {ARTICLE_CATEGORIES.map((category) => (
+                <option key={category} value={category}>
+                  {category}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Upload de Imagem */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Imagem de Destaque
@@ -321,154 +331,84 @@ export default function ArticleForm({ article, isEditing = false }: ArticleFormP
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
                 disabled={isUploading}
-                className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 transition-colors"
+                className="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 disabled:opacity-50"
               >
-                {isUploading ? (
-                  <>
-                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    Enviando...
-                  </>
-                ) : (
-                  <>
-                    <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                    </svg>
-                    Escolher Imagem
-                  </>
-                )}
+                {isUploading ? 'Enviando...' : 'Escolher Imagem'}
               </button>
-              
-              {formData.imageUrl && (
-                <div className="flex items-center space-x-2">
-                  <Image
-                    src={formData.imageUrl}
-                    alt="Preview"
-                    width={80}
-                    height={80}
-                    className="w-20 h-20 object-cover rounded-lg border border-gray-200"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setFormData(prev => ({ ...prev, imageUrl: '' }))}
-                    className="text-red-600 hover:text-red-800 p-1 rounded-full hover:bg-red-50 transition-colors"
-                    title="Remover imagem"
-                  >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                    </svg>
-                  </button>
-                </div>
-              )}
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleImageUpload}
+                className="hidden"
+              />
             </div>
             
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*"
-              onChange={handleImageUpload}
-              className="hidden"
-            />
-            
-            <p className="text-xs text-gray-500 mt-1">
-              Recomendado: imagem em formato 16:9 com pelo menos 1200x675 pixels
-            </p>
-          </div>
-
-          {/* Editor de Conteúdo com Preview */}
-          <div>
-            <div className="flex items-center justify-between mb-2">
-              <label className="block text-sm font-medium text-gray-700">
-                Conteúdo do Artigo *
-              </label>
-            </div>
-            
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-              {/* Editor */}
-              <div className={showPreview ? 'hidden lg:block' : ''}>
-                <TiptapEditor
-                  value={formData.content}
-                  onChange={(value) => setFormData(prev => ({ ...prev, content: value }))}
-                  placeholder="Digite o conteúdo do artigo..."
-                  height="700px"
+            {formData.imageUrl && (
+              <div className="mt-4">
+                <Image
+                  src={formData.imageUrl}
+                  alt="Preview"
+                  width={200}
+                  height={120}
+                  className="rounded-md object-cover"
                 />
               </div>
-
-              {/* Preview */}
-              <div className={`${showPreview ? '' : 'hidden lg:block'} border border-gray-300 rounded-lg p-4 bg-gray-50 overflow-y-auto max-h-[700px]`}>
-                <h4 className="text-sm font-medium text-gray-700 mb-3">Preview:</h4>
-                {formData.content ? (
-                  <div 
-                    className="prose prose-lg max-w-none"
-                    style={{
-                      '--tw-prose-headings': '#1f2937',
-                      '--tw-prose-body': '#374151',
-                      '--tw-prose-bold': '#111827',
-                      '--tw-prose-links': '#059669',
-                      '--tw-prose-bullets': '#6b7280',
-                      '--tw-prose-counters': '#6b7280',
-                    } as React.CSSProperties}
-                    dangerouslySetInnerHTML={{ __html: formData.content }}
-                  />
-                ) : (
-                  <p className="text-gray-500 text-sm italic">Digite algo no editor para ver o preview...</p>
-                )}
-              </div>
-            </div>
-            
-
+            )}
           </div>
 
-          {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
-              <div className="flex">
-                <svg className="w-5 h-5 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                {error}
-              </div>
-            </div>
-          )}
+          {/* Editor de Conteúdo */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Conteúdo *
+            </label>
+            <TiptapEditor
+              content={formData.content}
+              onChange={(content) => setFormData(prev => ({ ...prev, content }))}
+            />
+          </div>
+
+          {/* Publicar */}
+          <div className="flex items-center">
+            <input
+              type="checkbox"
+              id="isPublished"
+              name="isPublished"
+              checked={formData.isPublished}
+              onChange={handleInputChange}
+              className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
+            />
+            <label htmlFor="isPublished" className="ml-2 block text-sm text-gray-900">
+              Publicar artigo
+            </label>
+          </div>
 
           {/* Botões */}
-          <div className="flex justify-between pt-6 border-t border-gray-200">
+          <div className="flex justify-between">
             <button
               type="button"
-              onClick={() => router.back()}
-              className="px-6 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors"
+              onClick={() => router.push('/admin/dashboard')}
+              className="px-4 py-2 text-gray-600 bg-gray-100 rounded-md hover:bg-gray-200"
             >
               Cancelar
             </button>
             
-            <div className="flex space-x-3">
+            <div className="space-x-2">
               <button
                 type="button"
                 onClick={(e) => handleSubmit(e, true)}
                 disabled={isLoading}
-                className="px-6 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 transition-colors"
+                className="px-4 py-2 text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 disabled:opacity-50"
               >
-                Salvar como Rascunho
+                {isLoading ? 'Salvando...' : 'Salvar Rascunho'}
               </button>
               
               <button
-                type="button"
-                onClick={(e) => handleSubmit(e, false)}
+                type="submit"
                 disabled={isLoading}
-                className="px-6 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 disabled:opacity-50 transition-colors"
+                className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50"
               >
-                {isLoading ? (
-                  <>
-                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 inline" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    Salvando...
-                  </>
-                ) : (
-                  isEditing ? 'Atualizar Artigo' : 'Publicar Artigo'
-                )}
+                {isLoading ? 'Salvando...' : (isEditing ? 'Atualizar' : 'Publicar')}
               </button>
             </div>
           </div>

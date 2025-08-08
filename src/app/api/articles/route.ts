@@ -1,77 +1,76 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase, supabaseAdmin } from '@/lib/supabase';
-import { generateSlug, calculateReadTime, extractExcerpt, isValidCategory } from '@/lib/utils';
-import { getUserFromRequest } from '@/lib/auth';
-
-export const dynamic = 'force-dynamic';
+import { generateSlug, generateSlugFromKeywords, calculateReadTime, extractExcerpt, generateMetaDescription, isValidCategory } from '@/lib/utils';
 
 // GET /api/articles - Listar artigos
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
+    const page = parseInt(searchParams.get('page') || '1');
+    const limit = parseInt(searchParams.get('limit') || '10');
     const category = searchParams.get('category');
+    const search = searchParams.get('search');
     const published = searchParams.get('published');
-    const featured = searchParams.get('featured');
 
-    let query = supabase.from('articles').select('*');
+    const offset = (page - 1) * limit;
 
+    let query = supabase
+      .from('articles')
+      .select('*', { count: 'exact' });
+
+    // Filtros
     if (category) {
       query = query.eq('category', category);
     }
 
-    if (published === 'true') {
-      query = query.eq('isPublished', true);
+    if (published !== null) {
+      query = query.eq('isPublished', published === 'true');
     }
 
-    query = query.order('createdAt', { ascending: false });
-
-    if (featured === 'true') {
-      query = query.limit(6);
+    if (search) {
+      query = query.or(`title.ilike.%${search}%,content.ilike.%${search}%,keywords.ilike.%${search}%`);
     }
 
-    const { data: articles, error } = await query;
+    // Paginação e ordenação
+    const { data: articles, error, count } = await query
+      .order('createdAt', { ascending: false })
+      .range(offset, offset + limit - 1);
 
     if (error) {
-      console.error('Error fetching articles:', error);
-      return NextResponse.json(
-        { error: 'Erro ao buscar artigos' },
-        { status: 500 }
-      );
+      throw error;
     }
 
-    return NextResponse.json(articles);
+    return NextResponse.json({
+      articles: articles || [],
+      pagination: {
+        page,
+        limit,
+        total: count || 0,
+        totalPages: Math.ceil((count || 0) / limit)
+      }
+    });
   } catch (error) {
     console.error('Error fetching articles:', error);
     return NextResponse.json(
-      { error: 'Erro ao buscar artigos' },
+      { 
+        error: 'Erro ao buscar artigos',
+        details: error instanceof Error ? error.message : null
+      },
       { status: 500 }
     );
   }
 }
 
-// POST /api/articles - Criar artigo
+// POST /api/articles - Criar novo artigo
 export async function POST(request: NextRequest) {
   try {
-    console.log('Creating article...');
-    
     const body = await request.json();
-    console.log('Request body:', body);
-    
-    const { title, content, category, imageUrl, isPublished, authorName } = body;
+    console.log('Creating article with data:', body);
 
-    // Tentar obter o usuário autenticado via JWT
-    const user = getUserFromRequest(request);
-    let userId = null;
+    const { title, content, category, imageUrl, isPublished, keywords, metaDescription } = body;
 
-    if (user) {
-      userId = user.id;
-      console.log('Authenticated user:', user.email);
-    } else {
-      console.log('No authenticated user found, creating article without user association');
-    }
-
+    // Validações
     if (!title || !content || !category) {
-      console.log('Missing required fields');
       return NextResponse.json(
         { error: 'Título, conteúdo e categoria são obrigatórios' },
         { status: 400 }
@@ -79,82 +78,97 @@ export async function POST(request: NextRequest) {
     }
 
     if (!isValidCategory(category)) {
-      console.log('Invalid category:', category);
       return NextResponse.json(
         { error: 'Categoria inválida' },
         { status: 400 }
       );
     }
 
-    const slug = generateSlug(title);
+    // Gerar slug baseado em keywords se fornecidas, senão usar o título
+    let slug;
+    if (keywords && keywords.trim()) {
+      slug = generateSlugFromKeywords(keywords);
+    } else {
+      slug = generateSlug(title);
+    }
+
     const readTime = calculateReadTime(content);
     const excerpt = extractExcerpt(content);
+    const autoMetaDescription = metaDescription || generateMetaDescription(content, title);
 
-    console.log('Generated data:', { slug, readTime, excerpt, isPublished });
+    console.log('Generated data:', { slug, readTime, excerpt, autoMetaDescription });
 
-    // Verificar se o slug já existe e gerar um único se necessário
-    let finalSlug = slug;
-    let counter = 1;
-    
-    while (true) {
-      const { data: existingArticle, error: existingError } = await supabaseAdmin
-        .from('articles')
-        .select('slug')
-        .eq('slug', finalSlug)
-        .single();
-      
-      if (existingError && existingError.code !== 'PGRST116') { // PGRST116 means no rows found
-        console.error('Error checking existing slug:', existingError);
-        throw existingError;
-      }
-
-      if (!existingArticle) {
-        break;
-      }
-      
-      finalSlug = `${slug}-${counter}`;
-      counter++;
-    }
-
-    // Preparar dados do artigo
-    const now = new Date().toISOString();
-    const articleData: any = {
-      title,
-      content,
-      excerpt,
-      slug: finalSlug,
-      category,
-      imageUrl: imageUrl || null,
-      readTime,
-      isPublished: Boolean(isPublished),
-      authorName: authorName || null,
-      updatedAt: now,
-    };
-
-    // Adicionar user_id apenas se o usuário estiver autenticado
-    if (userId) {
-      articleData.user_id = userId;
-    }
-
-    const { data: article, error } = await supabaseAdmin
+    // Verificar se o slug já existe
+    const { data: existingSlug, error: slugError } = await supabase
       .from('articles')
-      .insert([articleData])
-      .select();
+      .select('slug')
+      .eq('slug', slug)
+      .single();
 
-    if (error) {
-      console.error('Error creating article:', error);
-      return NextResponse.json(
-        { error: 'Erro ao criar artigo: ' + error.message },
-        { status: 500 }
-      );
+    if (slugError && slugError.code !== 'PGRST116') {
+      throw slugError;
     }
 
-    console.log('Article created:', article);
-    return NextResponse.json(article[0], { status: 201 });
+    if (existingSlug) {
+      // Gerar slug único
+      let finalSlug = slug;
+      let counter = 1;
+      
+      while (true) {
+        const { data: existingSlug, error: existingError } = await supabase
+          .from('articles')
+          .select('slug')
+          .eq('slug', finalSlug)
+          .single();
+        
+        if (existingError && existingError.code !== 'PGRST116') {
+          throw existingError;
+        }
+        
+        if (!existingSlug) {
+          break;
+        }
+        
+        finalSlug = `${slug}-${counter}`;
+        counter++;
+      }
+      
+      slug = finalSlug;
+    }
+
+    // Criar artigo
+    const { data: newArticle, error: createError } = await supabaseAdmin
+      .from('articles')
+      .insert({
+        title,
+        content,
+        excerpt,
+        slug,
+        category,
+        imageUrl: imageUrl || null,
+        readTime,
+        isPublished: Boolean(isPublished),
+        keywords: keywords || null,
+        meta_description: autoMetaDescription,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      })
+      .select()
+      .single();
+
+    if (createError) {
+      throw createError;
+    }
+
+    console.log('Article created:', newArticle);
+    return NextResponse.json(newArticle, { status: 201 });
   } catch (error) {
     console.error('Error creating article:', error);
     return NextResponse.json(
-      { error: 'Erro ao criar artigo: ' + (error as Error).message },
+      { 
+        error: 'Erro ao criar artigo: ' + (error as Error).message,
+        details: error instanceof Error ? error.message : null
+      },
       { status: 500 }
     );
   }

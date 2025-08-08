@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase, supabaseAdmin } from '@/lib/supabase';
-import { generateSlug, calculateReadTime, extractExcerpt, isValidCategory } from '@/lib/utils';
+import { generateSlug, generateSlugFromKeywords, calculateReadTime, extractExcerpt, generateMetaDescription, isValidCategory } from '@/lib/utils';
 
 // Função auxiliar para determinar se é um ID numérico ou slug
 function isNumericId(param: string): boolean {
@@ -118,7 +118,7 @@ export async function PUT(
     const body = await request.json();
     console.log('Request body:', body);
 
-    const { title, content, category, imageUrl, isPublished } = body;
+    const { title, content, category, imageUrl, isPublished, keywords, metaDescription } = body;
 
     // Validações
     if (!title || !content || !category) {
@@ -135,11 +135,19 @@ export async function PUT(
       );
     }
 
-    let newSlug = generateSlug(title);
+    // Gerar slug baseado em keywords se fornecidas, senão usar o título
+    let newSlug;
+    if (keywords && keywords.trim()) {
+      newSlug = generateSlugFromKeywords(keywords);
+    } else {
+      newSlug = generateSlug(title);
+    }
+
     const readTime = calculateReadTime(content);
     const excerpt = extractExcerpt(content);
+    const autoMetaDescription = metaDescription || generateMetaDescription(content, title);
 
-    console.log('Generated data:', { newSlug, readTime, excerpt, isPublished });
+    console.log('Generated data:', { newSlug, readTime, excerpt, autoMetaDescription, isPublished });
 
     // Verificar se o novo slug já existe (exceto para o artigo atual)
     if (newSlug !== existingArticle.slug) {
@@ -193,6 +201,8 @@ export async function PUT(
         imageUrl: imageUrl || null,
         readTime,
         isPublished: Boolean(isPublished),
+        keywords: keywords || null,
+        meta_description: autoMetaDescription,
         updatedAt: new Date().toISOString()
       })
       .eq('id', existingArticle.id)
