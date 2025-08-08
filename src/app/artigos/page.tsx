@@ -19,7 +19,7 @@ export default function ArticlesPage() {
           throw new Error('Erro ao carregar artigos');
         }
         const data = await response.json();
-        setArticles(data);
+        setArticles(data.articles);
       } catch (err: unknown) {
         setError(err instanceof Error ? err.message : 'Um erro desconhecido ocorreu');
       } finally {
