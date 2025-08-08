@@ -2,68 +2,146 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://www.renovaverde.com.br</loc>
-    <lastmod>{datetime.now().strftime("%Y-%m-%d")}</lastmod>
+    <lastmod>2025-08-08</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://www.renovaverde.com.br/blog/o-guia-definitivo-para-o-reaproveitamento-de-agua-da-chuva-economize-proteja-o-planeta-e-transforme-seu-jardim-4</loc>
+    <loc>https://www.renovaverde.com.br/sobre</loc>
+    <lastmod>2025-08-08</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.renovaverde.com.br/contato</loc>
+    <lastmod>2025-08-08</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.renovaverde.com.br/politica-privacidade</loc>
+    <lastmod>2025-08-08</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+  </url>
+  <url>
+    <loc>https://www.renovaverde.com.br/termos-uso</loc>
+    <lastmod>2025-08-08</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+  </url>
+  <url>
+    <loc>https://www.renovaverde.com.br/artigos</loc>
+    <lastmod>2025-08-08</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://www.renovaverde.com.br/search</loc>
+    <lastmod>2025-08-08</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.renovaverde.com.br/artigos/reaproveitamento-agua-chuva</loc>
     <lastmod>2025-08-08</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.renovaverde.com.br/blog/o-guia-definitivo-para-uma-reforma-ecologica-transforme-sua-casa-em-um-oasis-de-sustentabilidade-4</loc>
+    <loc>https://www.renovaverde.com.br/artigos/reforma-ecologica-sustentavel</loc>
     <lastmod>2025-08-08</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.renovaverde.com.br/blog/eficiencia-energetica-5-dicas-incriveis-para-transformar-sua-casa-e-economizar-uma-fortuna-6</loc>
-    <lastmod>2025-08-07</lastmod>
+    <loc>https://www.renovaverde.com.br/artigos/economia-agua-no-jardim</loc>
+    <lastmod>2025-08-08</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.renovaverde.com.br/blog/transforme-seu-lixo-organico-em-ouro-verde-guia-completo-e-definitivo-sobre-compostagem-domestica-6</loc>
-    <lastmod>2025-08-07</lastmod>
+    <loc>https://www.renovaverde.com.br/artigos/eficiencia-energetica</loc>
+    <lastmod>2025-08-08</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.renovaverde.com.br/blog/as-10-melhores-plantas-purificadoras-de-ar-para-ter-em-casa</loc>
-    <lastmod>2025-08-07</lastmod>
+    <loc>https://www.renovaverde.com.br/artigos/compostagem-domestica</loc>
+    <lastmod>2025-08-08</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.renovaverde.com.br/blog/o-guia-definitivo-energia-solar-residencial-simples-e-acessivel-para-sua-casa-6</loc>
-    <lastmod>2025-08-07</lastmod>
+    <loc>https://www.renovaverde.com.br/artigos/melhores-plantas-purificadoras</loc>
+    <lastmod>2025-08-08</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.renovaverde.com.br/blog/economia-de-agua-no-jardim-transforme-seu-quintal-em-um-oasis-sustentavel-e-reduza-sua-conta-de-agua-8</loc>
-    <lastmod>2025-08-07</lastmod>
+    <loc>https://www.renovaverde.com.br/artigos/energia-solar-residencial</loc>
+    <lastmod>2025-08-08</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.renovaverde.com.br/blog/jardim-sustentavel-em-casa-o-guia-completo-para-um-lar-mais-verde-e-um-planeta-mais-saudavel</loc>
-    <lastmod>2025-08-07</lastmod>
+    <loc>https://www.renovaverde.com.br/artigos/jardim-sustentavel-casa</loc>
+    <lastmod>2025-08-08</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.renovaverde.com.br/blog/decoracao-ecologica-diy-transforme-sua-casa-em-um-oasis-verde-com-criatividade-e-economia</loc>
-    <lastmod>2025-08-07</lastmod>
+    <loc>https://www.renovaverde.com.br/artigos/decoracao-ecologica-diy</loc>
+    <lastmod>2025-08-08</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.renovaverde.com.br/blog/horta-organica-urbana-o-guia-completo-para-transformar-seu-lar-e-colher-saude-o-ano-inteiro</loc>
-    <lastmod>2025-08-07</lastmod>
+    <loc>https://www.renovaverde.com.br/artigos/horta-organica-urbana</loc>
+    <lastmod>2025-08-08</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.renovaverde.com.br/categoria/jardinagem</loc>
+    <lastmod>2025-08-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.renovaverde.com.br/categoria/energia-renovavel</loc>
+    <lastmod>2025-08-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.renovaverde.com.br/categoria/reformas-ecologicas</loc>
+    <lastmod>2025-08-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.renovaverde.com.br/categoria/reciclagem</loc>
+    <lastmod>2025-08-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.renovaverde.com.br/categoria/economia-domestica</loc>
+    <lastmod>2025-08-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.renovaverde.com.br/categoria/compostagem</loc>
+    <lastmod>2025-08-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.renovaverde.com.br/categoria/sustentabilidade</loc>
+    <lastmod>2025-08-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
   </url>
 </urlset>
