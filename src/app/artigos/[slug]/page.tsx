@@ -55,7 +55,7 @@ export default function ArticlePage({ params }: { params: { slug: string } }) {
         const relatedResponse = await fetch(`/api/articles/related?category=${encodeURIComponent(data.category)}&exclude=${data.id}`);
         if (relatedResponse.ok) {
           const relatedData = await relatedResponse.json();
-          setRelatedArticles(relatedData.slice(0, 3));
+          setRelatedArticles(relatedData.relatedArticles.slice(0, 3));
         }
 
         // Buscar artigos mais recentes
