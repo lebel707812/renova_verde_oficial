@@ -28,7 +28,7 @@ export default function AdminDashboard() {
       const response = await fetch('/api/articles');
       if (response.ok) {
         const data = await response.json();
-        setArticles(data);
+        setArticles(data.articles);
       } else {
         setError('Erro ao carregar artigos');
       }
