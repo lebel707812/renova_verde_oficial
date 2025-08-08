@@ -1,54 +1,38 @@
 import { Article } from '@/types';
 
-// TODO: Integrar com API de artigos do blog
-// Substituir dados mock por chamada à API
 export const FEATURED_ARTICLES: Article[] = [
   {
-    id: '1',
-    title: 'Como Criar um Jardim Vertical Sustentável em Casa',
-    excerpt: 'Descubra técnicas simples para transformar qualquer parede em um jardim vertical que purifica o ar e economiza espaço.',
-    category: 'Jardinagem',
-    imageUrl: '/images/jardim-vertical-placeholder.jpg',
-    slug: 'jardim-vertical-sustentavel',
-    publishedAt: '2024-01-15',
-    readTime: 8
+    id: '73',
+    title: 'O Guia Definitivo para o Reaproveitamento de Água da Chuva: Economize, Proteja o Planeta e Transforme seu Jardim',
+    excerpt: 'A crise hídrica é uma realidade que afeta cada vez mais pessoas e regiões em todo o mundo. A água, um recurso essencial para a vida, está se tornando escassa, e...',
+    category: 'Economia de Água',
+    imageUrl: 'https://ncglgprpvyaezbfoxcbb.supabase.co/storage/v1/object/public/images/articles/1754607444915.png',
+    slug: 'o-guia-definitivo-para-o-reaproveitamento-de-agua-da-chuva-economize-proteja-o-planeta-e-transforme-seu-jardim-4',
+    publishedAt: '2025-08-07',
+    readTime: 11
   },
   {
-    id: '2',
-    title: 'Energia Solar Residencial: Guia Completo para Iniciantes',
-    excerpt: 'Tudo que você precisa saber sobre instalação de painéis solares em casa, custos, benefícios e retorno do investimento.',
-    category: 'Energia Renovável',
-    imageUrl: '/images/energia-solar-placeholder.jpg',
-    slug: 'energia-solar-residencial-guia',
-    publishedAt: '2024-01-10',
-    readTime: 12
-  },
-  {
-    id: '3',
-    title: 'Reforma Ecológica: Materiais Sustentáveis para Sua Casa',
-    excerpt: 'Conheça os melhores materiais ecológicos para reformas que respeitam o meio ambiente sem abrir mão do design.',
+    id: '67',
+    title: 'O Guia Definitivo para uma Reforma Ecológica: Transforme sua Casa em um Oásis de Sustentabilidade',
+    excerpt: 'A ideia de reformar a casa pode trazer uma mistura de sentimentos: a empolgação com o novo visual, a esperança de ter um espaço mais funcional e a ansiedade com o caos temporário. Mas e se eu dissesse que essa reforma pode ir além da estética e se tornar uma oportunidade para você contribuir com o planeta e, de quebra, economizar dinheiro a longo prazo? É exatamente isso que propõe a Reforma Ecológica.',
     category: 'Reforma Ecológica',
-    imageUrl: '/images/reforma-ecologica-placeholder.jpg',
-    slug: 'reforma-ecologica-materiais-sustentaveis',
-    publishedAt: '2024-01-05',
+    imageUrl: 'https://ncglgprpvyaezbfoxcbb.supabase.co/storage/v1/object/public/images/articles/1754607463362.png',
+    slug: 'o-guia-definitivo-para-uma-reforma-ecologica-transforme-sua-casa-em-um-oasis-de-sustentabilidade',
+    publishedAt: '2025-08-07',
     readTime: 10
   }
 ];
 
 export const ARTICLE_CATEGORIES = [
-  'Jardinagem',
-  'Energia Renovável', 
-  'Reforma Ecológica',
-  'Compostagem',
   'Economia de Água',
-  'Sustentabilidade'
+  'Reforma Ecológica'
 ];
 
 // Configurações do site
 export const SITE_CONFIG = {
   name: 'Renova Verde Hub',
   description: 'Sustentabilidade Inteligente para Seu Lar - Dicas práticas de jardinagem, reformas ecológicas e energia renovável para transformar sua casa em um espaço mais verde e eficiente',
-  url: 'https://renovaverdehub.com',
+  url: 'https://www.renovaverde.com.br',
   ogImage: '/images/og-image.jpg',
   keywords: [
     'sustentabilidade residencial',
@@ -88,4 +72,5 @@ export const SOCIAL_LINKS = {
 };
 
 export type ArticleCategory = typeof ARTICLE_CATEGORIES[number];
+
 
