@@ -65,7 +65,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Páginas dinâmicas de artigos
   const { data: articles, error } = await supabase
     .from('articles')
-    .select('slug, updated_at')
+    .select('slug, updatedAt')
     .eq('is_published', true);
 
   if (error) {
@@ -75,7 +75,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const articlePages = articles.map((article: any) => ({
     url: `${baseUrl}/artigos/${article.slug}`,
-    lastModified: new Date(article.updated_at),
+    lastModified: new Date(article.updatedAt),
     changeFrequency: 'weekly' as const,
     priority: 0.7,
   }));

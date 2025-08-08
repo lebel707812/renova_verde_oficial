@@ -30,9 +30,9 @@ export async function POST(request: NextRequest) {
     // Buscar todos os artigos publicados
     const { data: articles, error } = await supabase
       .from('articles')
-      .select('slug, updated_at')
+      .select('slug, updatedAt')
       .eq('is_published', true)
-      .order('updated_at', { ascending: false });
+      .order('updatedAt', { ascending: false });
 
     if (error) {
       console.error('Error fetching articles for sitemap:', error);
@@ -91,7 +91,7 @@ export async function POST(request: NextRequest) {
     // Páginas de artigos
     const articlePages = articles.map((article: any) => ({
       url: `${baseUrl}/artigos/${article.slug}`,
-      lastmod: new Date(article.updated_at).toISOString().split('T')[0],
+      lastmod: new Date(article.updatedAt).toISOString().split('T')[0],
       changefreq: 'weekly',
       priority: '0.8'
     }));
