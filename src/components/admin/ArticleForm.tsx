@@ -87,10 +87,10 @@ export default function ArticleForm({ article, isEditing = false }: ArticleFormP
       clearTimeout(autoSaveTimeoutRef.current);
     }
 
-    // Auto-save após 3 segundos de inatividade
+    // Auto-save após 30 segundos de inatividade
     autoSaveTimeoutRef.current = setTimeout(() => {
       autoSave();
-    }, 3000);
+    }, 30000);
 
     return () => {
       if (autoSaveTimeoutRef.current) {
@@ -296,7 +296,7 @@ export default function ArticleForm({ article, isEditing = false }: ArticleFormP
               placeholder="Descrição que aparecerá nos resultados de busca (máx. 160 caracteres)"
             />
             <p className="text-xs text-gray-500 mt-1">
-              {formData.metaDescription.length}/160 caracteres
+              {(formData.metaDescription?.length ?? 0)}/160 caracteres
             </p>
           </div>
 
@@ -363,7 +363,7 @@ export default function ArticleForm({ article, isEditing = false }: ArticleFormP
               Conteúdo *
             </label>
             <TiptapEditor
-              content={formData.content}
+              value={formData.content}
               onChange={(content) => setFormData(prev => ({ ...prev, content }))}
             />
           </div>
