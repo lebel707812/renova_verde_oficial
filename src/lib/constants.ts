@@ -9,7 +9,10 @@ export const FEATURED_ARTICLES: Article[] = [
     imageUrl: 'https://ncglgprpvyaezbfoxcbb.supabase.co/storage/v1/object/public/images/articles/1754607444915.png',
     slug: 'o-guia-definitivo-para-o-reaproveitamento-de-agua-da-chuva-economize-proteja-o-planeta-e-transforme-seu-jardim-4',
     publishedAt: '2025-08-07',
-    readTime: 11
+    readTime: 11,
+    content: '',
+    createdAt: '2025-08-07',
+    author: { name: 'Renova Verde Hub', avatar: '/images/authors/renova-verde-hub.png' }
   },
   {
     id: '67',
@@ -19,7 +22,10 @@ export const FEATURED_ARTICLES: Article[] = [
     imageUrl: 'https://ncglgprpvyaezbfoxcbb.supabase.co/storage/v1/object/public/images/articles/1754607463362.png',
     slug: 'o-guia-definitivo-para-uma-reforma-ecologica-transforme-sua-casa-em-um-oasis-de-sustentabilidade',
     publishedAt: '2025-08-07',
-    readTime: 10
+    readTime: 10,
+    content: '',
+    createdAt: '2025-08-07',
+    author: { name: 'Renova Verde Hub', avatar: '/images/authors/renova-verde-hub.png' }
   }
 ];
 
