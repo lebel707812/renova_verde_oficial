@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import MainLayout from '@/components/layout/MainLayout';
 import SEOEnhanced from '@/components/SEOEnhanced';
-import ArticleInteractions from '@/components/ArticleInteractions';
+import ArticleInteractions, { CommentsSection } from '@/components/ArticleInteractions'; // Importar CommentsSection
 import { Article } from '@/types';
 import { supabaseAdmin } from '@/lib/supabase'; // Importar o cliente Supabase para o servidor
 
@@ -59,7 +59,7 @@ async function getComments(articleSlug: string): Promise<any[]> {
     const { data, error } = await supabase
       .from('comments')
       .select('*')
-      .eq('article_id', articleSlug) // Assumindo que a tabela de comentários tem uma coluna article_id
+      .eq('article_slug', articleSlug) // Assumindo que a tabela de comentários tem uma coluna article_slug
       .order('created_at', { ascending: false });
 
     if (error) {
@@ -123,6 +123,19 @@ export default async function ArticlePage({ params }: { params: { slug: string }
               {article.title}
             </h1>
             
+            {article.imageUrl && (
+              <div className="mb-8">
+                <Image
+                  src={article.imageUrl}
+                  alt={article.title}
+                  width={800}
+                  height={400}
+                  className="w-full h-64 md:h-96 object-cover rounded-lg shadow-lg"
+                  priority
+                />
+              </div>
+            )}
+
             <div className="flex items-center justify-between text-sm text-gray-500 mb-6">
               <div className="flex items-center space-x-4">
                 <span>Por {article.authorName || 'Renova Verde'}</span>
@@ -138,25 +151,12 @@ export default async function ArticlePage({ params }: { params: { slug: string }
                 <span>{article.readTime} min de leitura</span>
               </div>
               
+              {/* Botão de Like */}
               <ArticleInteractions 
                 articleSlug={article.slug} 
                 initialLikes={article.likes || 0} 
-                initialComments={comments} 
               />
             </div>
-
-            {article.imageUrl && (
-              <div className="mb-8">
-                <Image
-                  src={article.imageUrl}
-                  alt={article.title}
-                  width={800}
-                  height={400}
-                  className="w-full h-64 md:h-96 object-cover rounded-lg shadow-lg"
-                  priority
-                />
-              </div>
-            )}
           </header>
 
           {/* Conteúdo do artigo */}
@@ -205,6 +205,41 @@ export default async function ArticlePage({ params }: { params: { slug: string }
               </div>
             </div>
           </div>
+
+          {/* Seção de Comentários */}
+          <CommentsSection
+            articleSlug={article.slug}
+            initialComments={comments}
+          />
+
+          {/* Artigos Relacionados */}
+          {relatedArticles.length > 0 && (
+            <section className="mt-12">
+              <h2 className="text-3xl font-bold text-gray-900 mb-6">Artigos Relacionados</h2>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                {relatedArticles.map((relatedArticle) => (
+                  <Link href={`/artigos/${relatedArticle.slug}`} key={relatedArticle.id} className="block group">
+                    <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300">
+                      {relatedArticle.imageUrl && (
+                        <Image
+                          src={relatedArticle.imageUrl}
+                          alt={relatedArticle.title}
+                          width={400}
+                          height={200}
+                          className="w-full h-48 object-cover"
+                        />
+                      )}
+                      <div className="p-4">
+                        <h3 className="text-xl font-semibold text-gray-900 group-hover:text-green-600 transition-colors duration-300">{relatedArticle.title}</h3>
+                        <p className="text-gray-600 text-sm mt-2">{relatedArticle.excerpt}</p>
+                      </div>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </section>
+          )}
+
         </article>
       </MainLayout>
     </>
