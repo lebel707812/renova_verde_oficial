@@ -2,10 +2,16 @@ import { MetadataRoute } from 'next';
 import { SITE_CONFIG } from '@/lib/constants';
 import { createClient } from '@supabase/supabase-js';
 
+// Verificar se as variáveis de ambiente estão definidas
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
+let supabase: any = null;
+
+// Só criar o cliente Supabase se as variáveis estiverem definidas
+if (supabaseUrl && supabaseAnonKey) {
+  supabase = createClient(supabaseUrl, supabaseAnonKey);
+}
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = SITE_CONFIG.url;
@@ -62,26 +68,34 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
   ];
 
-  // Páginas dinâmicas de artigos
-  const { data: articles, error } = await supabase
-    .from('articles')
-    .select('slug, updatedAt')
-    .eq('isPublished', true);
+  let articlePages: any[] = [];
 
-  if (error) {
-    console.error('Error fetching articles for sitemap:', error);
-    return [...staticPages];
+  // Só tentar buscar artigos se o Supabase estiver configurado
+  if (supabase) {
+    try {
+      const { data: articles, error } = await supabase
+        .from('articles')
+        .select('slug, updatedAt')
+        .eq('isPublished', true);
+
+      if (!error && articles) {
+        articlePages = articles
+          .filter((article: any) => article.slug) // Garantir que o slug existe
+          .map((article: any) => ({
+            url: `${baseUrl}/artigos/${article.slug}`,
+            lastModified: new Date(article.updatedAt || new Date()),
+            changeFrequency: 'weekly' as const,
+            priority: 0.7,
+          }));
+      } else {
+        console.warn('Error fetching articles for sitemap:', error);
+      }
+    } catch (error) {
+      console.warn('Failed to fetch articles for sitemap:', error);
+    }
   }
 
-  const articlePages = articles.map((article: any) => ({
-    url: `${baseUrl}/artigos/${article.slug}`,
-    lastModified: new Date(article.updatedAt),
-    changeFrequency: 'weekly' as const,
-    priority: 0.7,
-  }));
-
-  // Páginas de categorias dinâmicas (exemplo, se houver uma tabela de categorias no Supabase)
-  // Por enquanto, mantendo as categorias estáticas como no código original, mas o ideal seria buscar do DB
+  // Páginas de categorias estáticas
   const categories = [
     'jardinagem',
     'energia-renovavel', 
