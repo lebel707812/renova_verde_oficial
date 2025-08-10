@@ -1,14 +1,15 @@
+
 'use client';
 
 import { useState } from 'react';
 import { NewsletterSignupProps } from '@/types';
 
-export default function NewsletterSignup({ 
+export default function NewsletterSignup({
   variant = 'default',
   placeholder = 'Digite seu email',
   showIcon = true,
   className = ''
-}: NewsletterSignupProps) {
+}: NewsletterSignupSignupProps) {
   const [email, setEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
@@ -20,7 +21,10 @@ export default function NewsletterSignup({
     setError('');
 
     // Validação básica de email
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const emailRegex = /^[^
+@]+@[^
+@]+\.[^
+@]+$/;
     if (!emailRegex.test(email)) {
       setError('Por favor, insira um email válido');
       setIsLoading(false);
@@ -65,6 +69,7 @@ export default function NewsletterSignup({
               className={`w-full px-4 py-3 ${showIcon ? 'pl-10' : ''} border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-300 ${error ? 'border-red-500' : ''}`}
               disabled={isLoading}
               required
+              aria-label="Seu endereço de email"
             />
           </div>
           
@@ -72,6 +77,7 @@ export default function NewsletterSignup({
             type="submit"
             disabled={isLoading || !email}
             className="px-6 py-3 bg-primary-900 hover:bg-primary-800 disabled:bg-gray-400 text-white font-semibold rounded-lg transition-all duration-300 transform hover:scale-105 disabled:transform-none disabled:cursor-not-allowed flex items-center"
+            aria-label="Assinar newsletter"
           >
             {isLoading ? (
               <svg className="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24">
@@ -137,13 +143,15 @@ export default function NewsletterSignup({
             className={`w-full px-4 py-4 ${showIcon ? 'pl-10' : ''} border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-300 ${error ? 'border-red-500' : ''}`}
             disabled={isLoading}
             required
+            aria-label="Seu endereço de email"
           />
         </div>
 
         <button
           type="submit"
           disabled={isLoading || !email}
-          className="w-full px-6 py-4 bg-primary-900 hover:bg-primary-800 disabled:bg-gray-400 text-white font-semibold rounded-lg transition-all duration-300 transform hover:scale-105 disabled:transform-none disabled:cursor-not-allowed flex items-center justify-center"
+          className="w-full px-6 py-4 bg-green-700 hover:bg-green-800 disabled:bg-gray-400 text-white font-semibold rounded-lg transition-all duration-300 transform hover:scale-105 disabled:transform-none disabled:cursor-not-allowed flex items-center justify-center"
+          aria-label="Quero Receber as Dicas"
         >
           {isLoading ? (
             <>
@@ -190,4 +198,5 @@ export default function NewsletterSignup({
     </div>
   );
 }
+
 

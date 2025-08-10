@@ -37,8 +37,8 @@ export async function POST(request: NextRequest) {
     // Tentar converter para AVIF primeiro, se suportado e mais eficiente
     try {
       imageBuffer = await sharp(imageBuffer)
-        .resize({ width: 1200, withoutEnlargement: true }) // Redimensionar para largura máxima de 1200px
-        .avif({ quality: 70 })
+        .resize({ width: 800, withoutEnlargement: true }) // Redimensionar para largura máxima de 800px
+        .avif({ quality: 60 })
         .toBuffer();
       convertedFilename = `${Date.now()}.avif`;
       convertedMimeType = 'image/avif';
@@ -48,8 +48,8 @@ export async function POST(request: NextRequest) {
       console.warn('AVIF conversion failed, trying WebP:', avifError);
       try {
         imageBuffer = await sharp(imageBuffer)
-          .resize({ width: 1200, withoutEnlargement: true }) // Redimensionar para largura máxima de 1200px
-          .webp({ quality: 75 })
+          .resize({ width: 800, withoutEnlargement: true }) // Redimensionar para largura máxima de 800px
+          .webp({ quality: 65 })
           .toBuffer();
         convertedFilename = `${Date.now()}.webp`;
         convertedMimeType = 'image/webp';
