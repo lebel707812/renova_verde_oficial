@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
+import sharp from 'sharp';
 
 export async function POST(request: NextRequest) {
   try {
@@ -27,20 +28,39 @@ export async function POST(request: NextRequest) {
       size: file.size
     });
 
+    // Converter a imagem para WebP
+    let imageBuffer = Buffer.from(await file.arrayBuffer());
+    let convertedFilename = '';
+    let convertedMimeType = '';
+
+    try {
+      imageBuffer = await sharp(imageBuffer)
+        .webp({ quality: 80 })
+        .toBuffer();
+      convertedFilename = `${Date.now()}.webp`;
+      convertedMimeType = 'image/webp';
+      console.log('Image converted to WebP');
+    } catch (conversionError) {
+      console.error('Error converting image to WebP:', conversionError);
+      // Se a conversão falhar, usar o arquivo original
+      convertedFilename = `${Date.now()}.${file.name.split('.').pop() || 'jpg'}`;
+      convertedMimeType = file.type;
+      console.log('Using original file due to conversion error.');
+    }
+
     // Gerar nome único para o arquivo
-    const timestamp = Date.now();
-    const extension = file.name.split('.').pop() || 'jpg';
-    const filename = `articles/${timestamp}.${extension}`;
+    const filename = `articles/${convertedFilename}`;
 
     console.log('Generated filename:', filename);
 
     try {
-      // Fazer upload para o Supabase Storage usando o File diretamente
+      // Fazer upload para o Supabase Storage usando o Buffer diretamente
       const { data, error } = await supabaseAdmin.storage
         .from('images')
-        .upload(filename, file, { 
+        .upload(filename, imageBuffer, { 
           cacheControl: '3600', 
-          upsert: false 
+          upsert: false, 
+          contentType: convertedMimeType 
         });
 
       if (error) {
