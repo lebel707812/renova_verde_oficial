@@ -20,7 +20,6 @@ export default function robots(): MetadataRoute.Robots {
         allow: '/',
         disallow: [
           '/admin/',
-          '/api/',
           '/private/',
         ],
       },
@@ -29,7 +28,6 @@ export default function robots(): MetadataRoute.Robots {
         allow: '/',
         disallow: [
           '/admin/',
-          '/api/',
           '/private/',
         ],
       },
