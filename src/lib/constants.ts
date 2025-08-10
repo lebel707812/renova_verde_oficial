@@ -31,7 +31,10 @@ export const FEATURED_ARTICLES: Article[] = [
 
 export const ARTICLE_CATEGORIES = [
   'Economia de Água',
-  'Reforma Ecológica'
+  'Reforma Ecológica',
+  'Compostagem',
+  'Jardinagem',
+  'Energia Renovável'
 ];
 
 // Configurações do site
