@@ -87,6 +87,11 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         
+        {/* Preload do CSS crítico */}
+        <link rel="preload" href="/css/923c97690ddb9310.css" as="style" />
+        <link rel="stylesheet" href="/css/923c97690ddb9310.css" media="print" onLoad="this.media='all'" />
+        <noscript><link rel="stylesheet" href="/css/923c97690ddb9310.css" /></noscript>
+
         {/* Theme color para mobile */}
         <meta name="theme-color" content="#1a3f32" />
         <meta name="msapplication-TileColor" content="#1a3f32" />
@@ -149,3 +154,5 @@ export default function RootLayout({
     </html>
   );
 }
+
+

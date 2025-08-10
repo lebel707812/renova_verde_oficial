@@ -28,24 +28,40 @@ export async function POST(request: NextRequest) {
       size: file.size
     });
 
-    // Converter a imagem para WebP
+    // Converter e redimensionar a imagem para WebP ou AVIF
     let imageBuffer = Buffer.from(await file.arrayBuffer());
     let convertedFilename = '';
     let convertedMimeType = '';
+    let outputFormat = 'webp'; // Padrão para webp
 
+    // Tentar converter para AVIF primeiro, se suportado e mais eficiente
     try {
       imageBuffer = await sharp(imageBuffer)
-        .webp({ quality: 80 })
+        .resize({ width: 1200, withoutEnlargement: true }) // Redimensionar para largura máxima de 1200px
+        .avif({ quality: 70 })
         .toBuffer();
-      convertedFilename = `${Date.now()}.webp`;
-      convertedMimeType = 'image/webp';
-      console.log('Image converted to WebP');
-    } catch (conversionError) {
-      console.error('Error converting image to WebP:', conversionError);
-      // Se a conversão falhar, usar o arquivo original
-      convertedFilename = `${Date.now()}.${file.name.split('.').pop() || 'jpg'}`;
-      convertedMimeType = file.type;
-      console.log('Using original file due to conversion error.');
+      convertedFilename = `${Date.now()}.avif`;
+      convertedMimeType = 'image/avif';
+      outputFormat = 'avif';
+      console.log('Image converted to AVIF');
+    } catch (avifError) {
+      console.warn('AVIF conversion failed, trying WebP:', avifError);
+      try {
+        imageBuffer = await sharp(imageBuffer)
+          .resize({ width: 1200, withoutEnlargement: true }) // Redimensionar para largura máxima de 1200px
+          .webp({ quality: 75 })
+          .toBuffer();
+        convertedFilename = `${Date.now()}.webp`;
+        convertedMimeType = 'image/webp';
+        outputFormat = 'webp';
+        console.log('Image converted to WebP');
+      } catch (webpError) {
+        console.error('WebP conversion failed, using original file:', webpError);
+        // Se a conversão falhar, usar o arquivo original
+        convertedFilename = `${Date.now()}.${file.name.split('.').pop() || 'jpg'}`;
+        convertedMimeType = file.type;
+        console.log('Using original file due to conversion error.');
+      }
     }
 
     // Gerar nome único para o arquivo
@@ -58,7 +74,7 @@ export async function POST(request: NextRequest) {
       const { data, error } = await supabaseAdmin.storage
         .from('images')
         .upload(filename, imageBuffer, { 
-          cacheControl: '3600', 
+          cacheControl: '31536000', // 1 ano
           upsert: false, 
           contentType: convertedMimeType 
         });

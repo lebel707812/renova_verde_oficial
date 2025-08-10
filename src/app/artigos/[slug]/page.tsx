@@ -128,10 +128,12 @@ export default async function ArticlePage({ params }: { params: { slug: string }
                 <Image
                   src={article.imageUrl}
                   alt={article.title}
-                  width={800}
-                  height={400}
+                  width={1200}
+                  height={600}
                   className="w-full h-64 md:h-96 object-cover rounded-lg shadow-lg"
                   priority
+                  sizes="(max-width: 768px) 100vw, 800px"
+                  fetchPriority="high"
                 />
               </div>
             )}
@@ -227,6 +229,7 @@ export default async function ArticlePage({ params }: { params: { slug: string }
                           width={400}
                           height={200}
                           className="w-full h-48 object-cover"
+                          loading="lazy"
                         />
                       )}
                       <div className="p-4">
