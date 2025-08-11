@@ -72,7 +72,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     console.log('Creating article with data:', body);
 
-    const { title, content, category, imageUrl, isPublished, keywords, metaDescription } = body;
+    const { title, content, category, imageUrl, isPublished, keywords, metaDescription, isFeatured } = body; // Adicionado isFeatured
 
     // Validações
     if (!title || !content || !category) {
@@ -153,6 +153,7 @@ export async function POST(request: NextRequest) {
         imageUrl: imageUrl || null,
         readTime,
         isPublished: Boolean(isPublished),
+        isFeatured: Boolean(isFeatured), // Adicionado para salvar o status de destaque
         keywords: keywords || null,
         meta_description: autoMetaDescription,
         createdAt: new Date().toISOString(),

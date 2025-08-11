@@ -20,7 +20,8 @@ export default function FeaturedArticles({ className = '' }: FeaturedArticlesPro
 
   const fetchFeaturedArticles = async () => {
     try {
-      const response = await fetch('/api/articles?published=true&featured=true&limit=6'); // Adicionado limit=6
+      // Removendo o filtro 'featured=true' para exibir os 6 artigos mais recentes
+      const response = await fetch('/api/articles?published=true&limit=6'); 
       if (response.ok) {
         const data = await response.json();
         // Converter dados da API para o formato esperado pelo componente
@@ -124,7 +125,18 @@ export default function FeaturedArticles({ className = '' }: FeaturedArticlesPro
           </div>
         )}
 
-
+        {/* Ver Todos os Artigos Button */}
+        <div className="text-center">
+          <Link 
+            href="/artigos"
+            className="inline-flex items-center px-8 py-4 bg-primary-900 hover:bg-primary-800 text-white font-semibold rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
+          >
+            Ver Todos os Artigos
+            <svg className="ml-2 w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+            </svg>
+          </Link>
+        </div>
       </div>
 
       {/* Background Decoration */}
@@ -135,6 +147,5 @@ export default function FeaturedArticles({ className = '' }: FeaturedArticlesPro
     </section>
   );
 }
-
 
 
