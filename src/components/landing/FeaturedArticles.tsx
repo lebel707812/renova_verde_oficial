@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -19,7 +20,7 @@ export default function FeaturedArticles({ className = '' }: FeaturedArticlesPro
 
   const fetchFeaturedArticles = async () => {
     try {
-      const response = await fetch('/api/articles?published=true&featured=true');
+      const response = await fetch('/api/articles?published=true&featured=true&limit=6'); // Adicionado limit=6
       if (response.ok) {
         const data = await response.json();
         // Converter dados da API para o formato esperado pelo componente
@@ -96,7 +97,7 @@ export default function FeaturedArticles({ className = '' }: FeaturedArticlesPro
         {/* Articles Grid */}
         {!isLoading && articles.length > 0 && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
-            {articles.map((article, index) => (
+            {articles.slice(0, 6).map((article, index) => ( // Limita a 6 artigos
               <ArticleCard 
                 key={article.id} 
                 article={article}
@@ -134,4 +135,6 @@ export default function FeaturedArticles({ className = '' }: FeaturedArticlesPro
     </section>
   );
 }
+
+
 

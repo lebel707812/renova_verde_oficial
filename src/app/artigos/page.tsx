@@ -14,7 +14,8 @@ export default function ArticlesPage() {
   useEffect(() => {
     const fetchArticles = async () => {
       try {
-        const response = await fetch('/api/articles?published=true');
+        // Removendo o limite para buscar todos os artigos publicados
+        const response = await fetch('/api/articles?published=true&limit=1000'); // Um limite alto para garantir que todos sejam buscados
         if (!response.ok) {
           throw new Error('Erro ao carregar artigos');
         }

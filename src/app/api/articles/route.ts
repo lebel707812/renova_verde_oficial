@@ -11,6 +11,7 @@ export async function GET(request: NextRequest) {
     const category = searchParams.get('category');
     const search = searchParams.get('search');
     const published = searchParams.get('published');
+    const featured = searchParams.get('featured'); // Adicionado para filtrar artigos em destaque
 
     const offset = (page - 1) * limit;
 
@@ -27,13 +28,17 @@ export async function GET(request: NextRequest) {
       query = query.eq('isPublished', published === 'true');
     }
 
+    if (featured === 'true') {
+      query = query.eq('isFeatured', true); // Assumindo que existe uma coluna isFeatured
+    }
+
     if (search) {
       query = query.or(`title.ilike.%${search}%,content.ilike.%${search}%,keywords.ilike.%${search}%`);
     }
 
     // Paginação e ordenação
     const { data: articles, error, count } = await query
-      .order('createdAt', { ascending: false })
+      .order('createdAt', { ascending: false }) // Ordenar pelos mais recentes
       .range(offset, offset + limit - 1);
 
     if (error) {
@@ -173,4 +178,5 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
 
