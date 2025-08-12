@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -45,7 +46,7 @@ export default function Header() {
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                  </svg>
+                </svg>
                 </div>
                 <input
                   type="text"
@@ -61,15 +62,11 @@ export default function Header() {
 
           {/* Navigation Links - Desktop */}
           <nav className="hidden md:flex items-center space-x-8">
-            <Link href="/" className="text-gray-700 hover:text-primary-900 px-3 py-2 text-sm font-medium transition-colors duration-200">
-              Início
-            </Link>
             <Link href="/artigos" className="text-gray-700 hover:text-primary-900 px-3 py-2 text-sm font-medium transition-colors duration-200">
               Artigos
             </Link>
-
-            <Link href="/sobre" className="text-gray-700 hover:text-primary-900 px-3 py-2 text-sm font-medium transition-colors duration-200">
-              Sobre
+            <Link href="/calculadora" className="text-gray-700 hover:text-primary-900 px-3 py-2 text-sm font-medium transition-colors duration-200">
+              Calculadoras
             </Link>
             <Link href="/contato" className="text-gray-700 hover:text-primary-900 px-3 py-2 text-sm font-medium transition-colors duration-200">
               Contato
@@ -123,26 +120,18 @@ export default function Header() {
 
               {/* Mobile Navigation Links */}
               <Link
-                href="/"
-                className="text-gray-700 hover:text-primary-900 hover:bg-gray-50 block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Início
-              </Link>
-              <Link
                 href="/artigos"
                 className="text-gray-700 hover:text-primary-900 hover:bg-gray-50 block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200"
                 onClick={() => setIsMenuOpen(false)}
               >
                 Artigos
               </Link>
-
               <Link
-                href="/sobre"
+                href="/calculadora"
                 className="text-gray-700 hover:text-primary-900 hover:bg-gray-50 block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200"
                 onClick={() => setIsMenuOpen(false)}
               >
-                Sobre
+                Calculadoras
               </Link>
               <Link
                 href="/contato"
@@ -158,4 +147,5 @@ export default function Header() {
     </header>
   );
 }
+
 
