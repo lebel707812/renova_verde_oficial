@@ -1,7 +1,7 @@
 
-import MainLayout from '@/components/layout/MainLayout';
-import Head from 'next/head';
-import Link from 'next/link';
+import MainLayout from "@/components/layout/MainLayout";
+import Head from "next/head";
+import Link from "next/link";
 
 export default function CalculadorasPage() {
   return (
@@ -42,10 +42,12 @@ export default function CalculadorasPage() {
                 <p className="text-gray-700">Calcula litros captáveis por mês com base na área do telhado e precipitação média da cidade.</p>
               </div>
             </Link>
-            <div className="bg-white rounded-lg shadow-md p-6">
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">Calculadora de Tinta para Pintura Sustentável</h2>
-              <p className="text-gray-700">Determina a quantidade de tinta ecológica necessária para paredes, considerando janelas/portas e número de demãos.</p>
-            </div>
+            <Link href="/calculadora/tinta" className="block">
+              <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow duration-200">
+                <h2 className="text-2xl font-bold text-gray-900 mb-4">Calculadora de Tinta para Pintura Sustentável</h2>
+                <p className="text-gray-700">Determina a quantidade de tinta ecológica necessária para paredes, considerando janelas/portas e número de demãos.</p>
+              </div>
+            </Link>
             {/* As outras calculadoras serão adicionadas aqui no futuro */}
           </div>
         </div>
