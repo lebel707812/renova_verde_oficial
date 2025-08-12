@@ -15,15 +15,100 @@ def generate_sitemap(articles_file, output_file):
         '    <lastmod>{datetime.now().strftime("%Y-%m-%d")}</lastmod>',
         '    <changefreq>daily</changefreq>',
         '    <priority>1.0</priority>',
-        '  </url>'
+        '  </url>',
+        '  <url>',
+        f'    <loc>{BASE_URL}/sobre</loc>',
+        '    <lastmod>{datetime.now().strftime("%Y-%m-%d")}</lastmod>',
+        '    <changefreq>monthly</changefreq>',
+        '    <priority>0.8</priority>',
+        '  </url>',
+        '  <url>',
+        f'    <loc>{BASE_URL}/contato</loc>',
+        '    <lastmod>{datetime.now().strftime("%Y-%m-%d")}</lastmod>',
+        '    <changefreq>monthly</changefreq>',
+        '    <priority>0.7</priority>',
+        '  </url>',
+        '  <url>',
+        f'    <loc>{BASE_URL}/politica-privacidade</loc>',
+        '    <lastmod>{datetime.now().strftime("%Y-%m-%d")}</lastmod>',
+        '    <changefreq>yearly</changefreq>',
+        '    <priority>0.3</priority>',
+        '  </url>',
+        '  <url>',
+        f'    <loc>{BASE_URL}/termos-uso</loc>',
+        '    <lastmod>{datetime.now().strftime("%Y-%m-%d")}</lastmod>',
+        '    <changefreq>yearly</changefreq>',
+        '    <priority>0.3</priority>',
+        '  </url>',
+        '  <url>',
+        f'    <loc>{BASE_URL}/artigos</loc>',
+        '    <lastmod>{datetime.now().strftime("%Y-%m-%d")}</lastmod>',
+        '    <changefreq>daily</changefreq>',
+        '    <priority>0.9</priority>',
+        '  </url>',
+        '  <url>',
+        f'    <loc>{BASE_URL}/categorias</loc>',
+        '    <lastmod>{datetime.now().strftime("%Y-%m-%d")}</lastmod>',
+        '    <changefreq>weekly</changefreq>',
+        '    <priority>0.8</priority>',
+        '  </url>',
+        '  <url>',
+        f'    <loc>{BASE_URL}/search</loc>',
+        '    <lastmod>{datetime.now().strftime("%Y-%m-%d")}</lastmod>',
+        '    <changefreq>monthly</changefreq>',
+        '    <priority>0.6</priority>',
+        '  </url>',
+        '  <url>',
+        f'    <loc>{BASE_URL}/calculadora</loc>',
+        '    <lastmod>{datetime.now().strftime("%Y-%m-%d")}</lastmod>',
+        '    <changefreq>monthly</changefreq>',
+        '    <priority>0.7</priority>',
+        '  </url>',
+        '  <url>',
+        f'    <loc>{BASE_URL}/calculadora/chuva</loc>',
+        '    <lastmod>{datetime.now().strftime("%Y-%m-%d")}</lastmod>',
+        '    <changefreq>monthly</changefreq>',
+        '    <priority>0.7</priority>',
+        '  </url>',
+        '  <url>',
+        f'    <loc>{BASE_URL}/calculadora/solar</loc>',
+        '    <lastmod>{datetime.now().strftime("%Y-%m-%d")}</lastmod>',
+        '    <changefreq>monthly</changefreq>',
+        '    <priority>0.7</priority>',
+        '  </url>',
+        '  <url>',
+        f'    <loc>{BASE_URL}/calculadora/tinta</loc>',
+        '    <lastmod>{datetime.now().strftime("%Y-%m-%d")}</lastmod>',
+        '    <changefreq>monthly</changefreq>',
+        '    <priority>0.7</priority>',
+        '  </url>',
     ]
 
     for article in articles:
         sitemap_content.append('  <url>')
-        sitemap_content.append(f'    <loc>{BASE_URL}/blog/{article["slug"]}</loc>')
+        sitemap_content.append(f'    <loc>{BASE_URL}/artigos/{article["slug"]}</loc>')
         sitemap_content.append(f'    <lastmod>{article["updatedAt"].split("T")[0]}</lastmod>')
         sitemap_content.append('    <changefreq>weekly</changefreq>')
-        sitemap_content.append('    <priority>0.8</priority>')
+        sitemap_content.append('    <priority>0.7</priority>')
+        sitemap_content.append('  </url>')
+
+    categories = [
+        'jardinagem',
+        'energia-renovavel',
+        'reformas-ecologicas',
+        'reciclagem',
+        'economia-domestica',
+        'compostagem',
+        'sustentabilidade',
+        'economia-de-agua'
+    ]
+
+    for category in categories:
+        sitemap_content.append('  <url>')
+        sitemap_content.append(f'    <loc>{BASE_URL}/categoria/{category}</loc>')
+        sitemap_content.append('    <lastmod>{datetime.now().strftime("%Y-%m-%d")}</lastmod>')
+        sitemap_content.append('    <changefreq>weekly</changefreq>')
+        sitemap_content.append('    <priority>0.6</priority>')
         sitemap_content.append('  </url>')
 
     sitemap_content.append('</urlset>')

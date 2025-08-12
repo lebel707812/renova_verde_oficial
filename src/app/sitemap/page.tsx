@@ -1,4 +1,3 @@
-
 import MainLayout from '@/components/layout/MainLayout';
 import Link from 'next/link';
 
@@ -32,6 +31,86 @@ export default function SitemapPage() {
                 <li>
                   <Link href="/contato" className="text-primary-700 hover:underline">
                     Contato
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/search" className="text-primary-700 hover:underline">
+                    Pesquisa
+                  </Link>
+                </li>
+              </ul>
+            </div>
+            <div>
+              <h2 className="text-2xl font-bold text-gray-800 mb-4">Calculadoras</h2>
+              <ul className="space-y-2">
+                <li>
+                  <Link href="/calculadora" className="text-primary-700 hover:underline">
+                    Calculadora Principal
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/calculadora/chuva" className="text-primary-700 hover:underline">
+                    Calculadora de Água da Chuva
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/calculadora/solar" className="text-primary-700 hover:underline">
+                    Calculadora de Energia Solar
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/calculadora/tinta" className="text-primary-700 hover:underline">
+                    Calculadora de Tinta Ecológica
+                  </Link>
+                </li>
+              </ul>
+            </div>
+            <div>
+              <h2 className="text-2xl font-bold text-gray-800 mb-4">Categorias</h2>
+              <ul className="space-y-2">
+                <li>
+                  <Link href="/categorias" className="text-primary-700 hover:underline">
+                    Todas as Categorias
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/categoria/jardinagem" className="text-primary-700 hover:underline">
+                    Jardinagem
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/categoria/energia-renovavel" className="text-primary-700 hover:underline">
+                    Energia Renovável
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/categoria/reformas-ecologicas" className="text-primary-700 hover:underline">
+                    Reformas Ecológicas
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/categoria/reciclagem" className="text-primary-700 hover:underline">
+                    Reciclagem
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/categoria/economia-domestica" className="text-primary-700 hover:underline">
+                    Economia Doméstica
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/categoria/compostagem" className="text-primary-700 hover:underline">
+                    Compostagem
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/categoria/sustentabilidade" className="text-primary-700 hover:underline">
+                    Sustentabilidade
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/categoria/economia-de-agua" className="text-primary-700 hover:underline">
+                    Economia de Água
                   </Link>
                 </li>
               </ul>

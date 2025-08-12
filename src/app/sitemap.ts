@@ -66,6 +66,30 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: 'monthly' as const,
       priority: 0.6,
     },
+    {
+      url: `${baseUrl}/calculadora`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly' as const,
+      priority: 0.7,
+    },
+    {
+      url: `${baseUrl}/calculadora/chuva`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly' as const,
+      priority: 0.7,
+    },
+    {
+      url: `${baseUrl}/calculadora/solar`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly' as const,
+      priority: 0.7,
+    },
+    {
+      url: `${baseUrl}/calculadora/tinta`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly' as const,
+      priority: 0.7,
+    },
   ];
 
   let articlePages: any[] = [];
@@ -103,7 +127,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     'reciclagem',
     'economia-domestica',
     'compostagem',
-    'sustentabilidade'
+    'sustentabilidade',
+    'economia-de-agua'
   ];
 
   const categoryPages = categories.map((category) => ({
