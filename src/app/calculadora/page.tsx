@@ -1,6 +1,7 @@
 
 import MainLayout from '@/components/layout/MainLayout';
 import Head from 'next/head';
+import Link from 'next/link';
 
 export default function CalculadorasPage() {
   return (
@@ -29,10 +30,12 @@ export default function CalculadorasPage() {
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {/* Espaço para as calculadoras individuais */}
-            <div className="bg-white rounded-lg shadow-md p-6">
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">Calculadora de Economia de Energia Solar</h2>
-              <p className="text-gray-700">Mostra quanto você pode economizar instalando painéis solares, com base no consumo mensal (kWh) e região.</p>
-            </div>
+            <Link href="/calculadora/solar" className="block">
+              <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow duration-200">
+                <h2 className="text-2xl font-bold text-gray-900 mb-4">Calculadora de Economia de Energia Solar</h2>
+                <p className="text-gray-700">Mostra quanto você pode economizar instalando painéis solares, com base no consumo mensal (kWh) e região.</p>
+              </div>
+            </Link>
             <div className="bg-white rounded-lg shadow-md p-6">
               <h2 className="text-2xl font-bold text-gray-900 mb-4">Calculadora de Captação de Água da Chuva</h2>
               <p className="text-gray-700">Calcula litros captáveis por mês com base na área do telhado e precipitação média da cidade.</p>
