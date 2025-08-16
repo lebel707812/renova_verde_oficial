@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
+import sharp from 'sharp';
 
 export async function POST(request: NextRequest) {
   console.log('=== UPLOAD API INICIADO ===');
@@ -73,44 +74,72 @@ export async function POST(request: NextRequest) {
     }
     console.log('✅ Tipo de arquivo válido:', file.type);
 
-    // Validar tamanho do arquivo (máximo 10MB)
-    const maxSize = 10 * 1024 * 1024; // 10MB
-    console.log('Validando tamanho do arquivo...');
-    if (file.size > maxSize) {
-      console.error('❌ Arquivo muito grande:', file.size, 'bytes (máximo:', maxSize, 'bytes)');
+    // Validar tamanho do arquivo (máximo 10MB antes do processamento)
+    const maxSizeBeforeProcessing = 10 * 1024 * 1024; // 10MB
+    console.log('Validando tamanho do arquivo antes do processamento...');
+    if (file.size > maxSizeBeforeProcessing) {
+      console.error('❌ Arquivo muito grande antes do processamento:', file.size, 'bytes (máximo:', maxSizeBeforeProcessing, 'bytes)');
       return NextResponse.json(
         { 
           success: false,
-          error: 'Arquivo muito grande. Máximo 10MB.' 
+          error: 'Arquivo muito grande. Máximo 10MB antes do processamento.' 
         },
         { status: 400 }
       );
     }
-    console.log('✅ Tamanho do arquivo válido:', file.size, 'bytes');
+    console.log('✅ Tamanho do arquivo válido antes do processamento:', file.size, 'bytes');
 
-    // Converter arquivo para buffer
-    console.log('Convertendo arquivo para buffer...');
-    let fileBuffer: ArrayBuffer;
+    // Converter e redimensionar a imagem para WebP
+    let imageBuffer: Buffer;
+    let convertedFilename = '';
+    let convertedMimeType = '';
+
+    console.log('Iniciando processamento de imagem com Sharp...');
     try {
-      fileBuffer = await file.arrayBuffer();
-      console.log('✅ Arquivo convertido para buffer, tamanho:', fileBuffer.byteLength, 'bytes');
-    } catch (bufferError) {
-      console.error('❌ Erro ao converter arquivo para buffer:', bufferError);
-      return NextResponse.json(
-        { 
-          success: false,
-          error: 'Erro ao processar arquivo' 
-        },
-        { status: 500 }
-      );
+      const originalBuffer = Buffer.from(await file.arrayBuffer());
+      
+      // Tentar converter para WebP
+      imageBuffer = await sharp(originalBuffer)
+        .resize({ width: 1200, withoutEnlargement: true }) // Redimensiona para largura máxima de 1200px
+        .webp({ quality: 80 }) // Qualidade WebP de 80%
+        .toBuffer();
+      
+      convertedFilename = `${Date.now()}.webp`;
+      convertedMimeType = 'image/webp';
+      console.log('✅ Imagem convertida para WebP com sucesso. Tamanho:', imageBuffer.byteLength, 'bytes');
+      
+    } catch (webpError) {
+      console.error('❌ Falha na conversão para WebP:', webpError);
+      
+      // Se a conversão para WebP falhar, tentar JPEG
+      try {
+        const originalBuffer = Buffer.from(await file.arrayBuffer());
+        imageBuffer = await sharp(originalBuffer)
+          .resize({ width: 1200, withoutEnlargement: true })
+          .jpeg({ quality: 85 }) // Qualidade JPEG de 85%
+          .toBuffer();
+        
+        convertedFilename = `${Date.now()}.jpg`;
+        convertedMimeType = 'image/jpeg';
+        console.log('✅ Usando formato JPEG devido a erro na conversão WebP. Tamanho:', imageBuffer.byteLength, 'bytes');
+        
+      } catch (fallbackError) {
+        console.error('❌ Processamento de imagem falhou completamente:', fallbackError);
+        return NextResponse.json(
+          { 
+            success: false,
+            error: 'Erro ao processar a imagem' 
+          },
+          { status: 500 }
+        );
+      }
     }
 
     // Gerar nome único para o arquivo
     const timestamp = Date.now();
     const randomSuffix = Math.random().toString(36).substring(2, 8);
-    const fileExtension = file.name.split('.').pop() || 'jpg';
-    const filename = `articles/${timestamp}_${randomSuffix}.${fileExtension}`;
-    console.log('✅ Nome do arquivo gerado:', filename);
+    const filename = `articles/${timestamp}_${randomSuffix}.${convertedFilename.split('.').pop()}`;
+    console.log('✅ Nome do arquivo gerado para upload:', filename);
 
     // Testar conexão com Supabase
     console.log('Testando conexão com Supabase...');
@@ -162,10 +191,10 @@ export async function POST(request: NextRequest) {
     try {
       const { data: uploadData, error: uploadError } = await supabaseAdmin.storage
         .from('images')
-        .upload(filename, fileBuffer, {
+        .upload(filename, imageBuffer, {
           cacheControl: '31536000', // 1 ano
           upsert: false,
-          contentType: file.type
+          contentType: convertedMimeType 
         });
 
       if (uploadError) {
@@ -218,8 +247,8 @@ export async function POST(request: NextRequest) {
         url: publicUrlData.publicUrl,
         filename: filename,
         originalName: file.name,
-        size: file.size,
-        type: file.type
+        size: imageBuffer.byteLength, // Usar o tamanho do buffer processado
+        type: convertedMimeType
       };
 
       console.log('✅ Upload concluído com sucesso:', response);
