@@ -71,30 +71,28 @@ export async function GET(
           .order('createdAt', { ascending: true });
 
         if (repliesError) {
-          throw repliesError;
+          console.error('Error fetching replies:', repliesError);
+          return { ...comment, replies: [] };
         }
 
-        return {
-          ...comment,
-          replies: replies || []
-        };
+        return { ...comment, replies };
       })
     );
 
-    return NextResponse.json(commentsWithReplies);
+    return NextResponse.json({ comments: commentsWithReplies });
   } catch (error) {
     console.error('Error fetching comments:', error);
     return NextResponse.json(
       { 
         error: 'Erro ao buscar comentários',
-        details: error instanceof Error ? error.message : 'Erro desconhecido'
+        details: error instanceof Error ? error.message : null
       },
       { status: 500 }
     );
   }
 }
 
-// POST /api/articles/[slug]/comments - Criar novo comentário
+// POST /api/articles/[slug]/comments - Adicionar um comentário
 export async function POST(
   request: NextRequest,
   { params }: { params: { slug: string } }
@@ -104,24 +102,10 @@ export async function POST(
     const body = await request.json();
     const { name, content, parentId } = body;
 
-    // Validações
+    // Validação
     if (!name || !content) {
       return NextResponse.json(
         { error: 'Nome e conteúdo são obrigatórios' },
-        { status: 400 }
-      );
-    }
-
-    if (name.trim().length < 2) {
-      return NextResponse.json(
-        { error: 'Nome deve ter pelo menos 2 caracteres' },
-        { status: 400 }
-      );
-    }
-
-    if (content.trim().length < 5) {
-      return NextResponse.json(
-        { error: 'Comentário deve ter pelo menos 5 caracteres' },
         { status: 400 }
       );
     }
@@ -161,76 +145,62 @@ export async function POST(
       );
     }
 
-    // Se for uma resposta, verificar se o comentário pai existe
-    if (parentId) {
-      const { data: parentComment, error: parentError } = await supabase
-        .from('comments')
-        .select('*')
-        .eq('id', parseInt(parentId))
-        .single();
-
-      if (parentError && parentError.code !== 'PGRST116') {
-        throw parentError;
-      }
-
-      if (!parentComment) {
-        return NextResponse.json(
-          { error: 'Comentário pai não encontrado' },
-          { status: 404 }
-        );
-      }
-
-      if (parentComment.articleId !== article.id) {
-        return NextResponse.json(
-          { error: 'Comentário pai não pertence a este artigo' },
-          { status: 400 }
-        );
-      }
-    }
-
     // Criar o comentário
-    const { data: comment, error: commentError } = await supabaseAdmin
+    const { data: newComment, error: createError } = await supabaseAdmin
       .from('comments')
-      .insert([
-        {
-          name: name.trim(),
-          content: content.trim(),
-          articleId: article.id,
-          parentId: parentId ? parseInt(parentId) : null
-        }
-      ])
+      .insert({
+        articleId: article.id,
+        name,
+        content,
+        parentId: parentId || null,
+        createdAt: new Date().toISOString(),
+      })
       .select()
       .single();
 
-    if (commentError) {
-      throw commentError;
+    if (createError) {
+      throw createError;
     }
 
-    // Buscar respostas se existirem
-    const { data: replies, error: repliesError } = await supabase
+    // Buscar todos os comentários atualizados
+    const { data: updatedComments, error: fetchError } = await supabase
       .from('comments')
       .select('*')
-      .eq('parentId', comment.id);
+      .eq('articleId', article.id)
+      .is('parentId', null)
+      .order('createdAt', { ascending: false });
 
-    if (repliesError) {
-      throw repliesError;
+    if (fetchError) {
+      throw fetchError;
     }
 
-    const commentWithReplies = {
-      ...comment,
-      replies: replies || []
-    };
+    // Buscar respostas para cada comentário
+    const commentsWithReplies = await Promise.all(
+      updatedComments.map(async (comment) => {
+        const { data: replies, error: repliesError } = await supabase
+          .from('comments')
+          .select('*')
+          .eq('parentId', comment.id)
+          .order('createdAt', { ascending: true });
 
-    return NextResponse.json(commentWithReplies, { status: 201 });
+        if (repliesError) {
+          console.error('Error fetching replies:', repliesError);
+          return { ...comment, replies: [] };
+        }
+
+        return { ...comment, replies };
+      })
+    );
+
+    return NextResponse.json({ comments: commentsWithReplies });
   } catch (error) {
-    console.error('Error creating comment:', error);
+    console.error('Error adding comment:', error);
     return NextResponse.json(
       { 
-        error: 'Erro ao criar comentário',
-        details: error instanceof Error ? error.message : 'Erro desconhecido'
+        error: 'Erro ao adicionar comentário',
+        details: error instanceof Error ? error.message : null
       },
       { status: 500 }
     );
   }
 }
-

@@ -57,3 +57,22 @@ export interface WebsiteSchema {
   sameAs?: string[];
 }
 
+// Tipos para comentários
+export interface Comment {
+  id: number;
+  name: string;
+  content: string;
+  createdAt: string;
+  replies?: Comment[];
+}
+
+// Tipos para interações de artigos
+export interface ArticleInteractionsProps {
+  articleSlug: string;
+  initialLikes: number;
+}
+
+export interface CommentsSectionProps {
+  articleSlug: string;
+  initialComments: Comment[];
+}

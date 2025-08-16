@@ -1,19 +1,36 @@
-
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
 export default function Header() {
   const [searchQuery, setSearchQuery] = useState('');
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [showSearchResults, setShowSearchResults] = useState(false);
+  const searchRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
+
+  // Fechar resultados de busca ao clicar fora
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
+        setShowSearchResults(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
       router.push(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
+      setShowSearchResults(false);
     }
   };
 
@@ -22,6 +39,30 @@ export default function Header() {
       handleSearch(e as any);
     }
   };
+
+  // Buscar resultados em tempo real
+  useEffect(() => {
+    const fetchSearchResults = async () => {
+      if (searchQuery.trim().length > 2) {
+        try {
+          const response = await fetch(`/api/search?q=${encodeURIComponent(searchQuery.trim())}&limit=5`);
+          if (response.ok) {
+            const data = await response.json();
+            setSearchResults(data.articles || []);
+            setShowSearchResults(true);
+          }
+        } catch (error) {
+          console.error('Error fetching search results:', error);
+        }
+      } else {
+        setSearchResults([]);
+        setShowSearchResults(false);
+      }
+    };
+
+    const timeoutId = setTimeout(fetchSearchResults, 300);
+    return () => clearTimeout(timeoutId);
+  }, [searchQuery]);
 
   return (
     <header className="bg-white shadow-sm border-b border-gray-100 sticky top-0 z-50">
@@ -40,24 +81,50 @@ export default function Header() {
           </div>
 
           {/* Search Bar - Desktop */}
-          <div className="hidden md:flex flex-1 max-w-lg mx-8">
+          <div className="hidden md:flex flex-1 max-w-lg mx-8 relative" ref={searchRef}>
             <form onSubmit={handleSearch} className="w-full">
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
+                  </svg>
                 </div>
                 <input
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   onKeyPress={handleKeyPress}
+                  onFocus={() => searchQuery.trim().length > 2 && setShowSearchResults(true)}
                   placeholder="Buscar artigos sobre sustentabilidade..."
                   className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 sm:text-sm transition-colors duration-200"
+                  aria-autocomplete="list"
+                  aria-expanded={showSearchResults}
                 />
               </div>
             </form>
+            
+            {/* Resultados da busca em tempo real */}
+            {showSearchResults && searchResults.length > 0 && (
+              <div className="absolute z-10 mt-1 w-full bg-white shadow-lg rounded-md overflow-hidden border border-gray-200">
+                <ul className="divide-y divide-gray-100">
+                  {searchResults.map((article) => (
+                    <li key={article.id}>
+                      <Link
+                        href={`/artigos/${article.slug}`}
+                        className="block px-4 py-3 hover:bg-gray-50 transition-colors duration-150"
+                        onClick={() => {
+                          setShowSearchResults(false);
+                          setSearchQuery('');
+                        }}
+                      >
+                        <p className="text-sm font-medium text-gray-900 truncate">{article.title}</p>
+                        <p className="text-xs text-gray-500 truncate mt-1">{article.excerpt}</p>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </div>
 
           {/* Navigation Links - Desktop */}
@@ -78,6 +145,7 @@ export default function Header() {
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
               className="inline-flex items-center justify-center p-2 rounded-md text-gray-700 hover:text-primary-900 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary-500 transition-colors duration-200"
+              aria-expanded={isMenuOpen}
             >
               <span className="sr-only">Abrir menu principal</span>
               {!isMenuOpen ? (
@@ -147,5 +215,3 @@ export default function Header() {
     </header>
   );
 }
-
-

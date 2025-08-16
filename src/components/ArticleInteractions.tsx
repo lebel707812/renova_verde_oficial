@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -35,6 +34,11 @@ export default function ArticleInteractions({
         const data = await response.json();
         setLikeCount(data.likes);
         setLiked(true);
+        
+        // Salvar estado do like no localStorage para persistir
+        if (typeof window !== 'undefined') {
+          localStorage.setItem(`liked_${articleSlug}`, 'true');
+        }
       } else {
         console.error('Failed to like article:', response.statusText);
       }
@@ -42,6 +46,16 @@ export default function ArticleInteractions({
       console.error('Error liking article:', error);
     }
   };
+
+  // Verificar se o artigo já foi curtido ao carregar o componente
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const likedStatus = localStorage.getItem(`liked_${articleSlug}`);
+      if (likedStatus === 'true') {
+        setLiked(true);
+      }
+    }
+  }, [articleSlug]);
 
   return (
     <button
@@ -52,6 +66,7 @@ export default function ArticleInteractions({
           ? 'bg-red-100 text-red-600'
           : 'bg-gray-100 text-gray-600 hover:bg-red-100 hover:text-red-600'
       }`}
+      aria-label={liked ? "Você curtiu este artigo" : "Curtir este artigo"}
     >
       <span>❤️</span>
       <span>{likeCount}</span>
@@ -88,48 +103,43 @@ export function CommentsSection({
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          name: newComment.name.trim(),
-          content: newComment.content.trim(),
-          parentId: parentId || null,
+          name: newComment.name,
+          content: newComment.content,
+          parentId,
         }),
       });
 
       if (response.ok) {
-        const comment = await response.json();
-
-        if (parentId) {
-          setComments((prev) =>
-            prev.map((c) =>
-              c.id === parentId
-                ? { ...c, replies: [...(c.replies || []), comment] }
-                : c
-            )
-          );
-        } else {
-          setComments((prev) => [comment, ...prev]);
-        }
-
+        const data = await response.json();
+        setComments(data.comments);
         setNewComment({ name: '', content: '' });
         setReplyingTo(null);
       } else {
-        console.error('Failed to submit comment:', response.statusText);
+        console.error('Failed to add comment:', response.statusText);
       }
     } catch (error) {
-      console.error('Error submitting comment:', error);
+      console.error('Error adding comment:', error);
     } finally {
       setCommentLoading(false);
     }
   };
 
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('pt-BR', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+    });
+  };
+
   return (
-    <section className="mt-12">
-      <h3 className="text-2xl font-bold text-gray-900 mb-6">
+    <div className="mt-8">
+      <h3 className="text-xl font-bold text-gray-900 mb-4">
         Comentários ({comments.length})
       </h3>
 
       {/* Formulário de novo comentário */}
-      <form onSubmit={(e) => handleCommentSubmit(e)} className="mb-8 p-6 bg-gray-50 rounded-lg">
-        <h4 className="text-lg font-medium text-gray-900 mb-4">Deixe seu comentário</h4>
+      <form onSubmit={(e) => handleCommentSubmit(e)} className="mb-8">
         <div className="space-y-4">
           <div>
             <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
@@ -139,10 +149,8 @@ export function CommentsSection({
               type="text"
               id="name"
               value={newComment.name}
-              onChange={(e) =>
-                setNewComment((prev) => ({ ...prev, name: e.target.value }))
-              }
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+              onChange={(e) => setNewComment({ ...newComment, name: e.target.value })}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
               required
             />
           </div>
@@ -152,21 +160,19 @@ export function CommentsSection({
             </label>
             <textarea
               id="content"
-              rows={4}
               value={newComment.content}
-              onChange={(e) =>
-                setNewComment((prev) => ({ ...prev, content: e.target.value }))
-              }
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+              onChange={(e) => setNewComment({ ...newComment, content: e.target.value })}
+              rows={4}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
               required
             />
           </div>
           <button
             type="submit"
             disabled={commentLoading}
-            className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50"
+            className="px-4 py-2 bg-primary-900 text-white rounded-md hover:bg-primary-800 disabled:opacity-50"
           >
-            {commentLoading ? 'Enviando...' : 'Enviar Comentário'}
+            {commentLoading ? 'Enviando...' : 'Comentar'}
           </button>
         </div>
       </form>
@@ -174,84 +180,101 @@ export function CommentsSection({
       {/* Lista de comentários */}
       <div className="space-y-6">
         {comments.map((comment) => (
-          <div key={comment.id} className="border-l-4 border-green-200 pl-4">
-            <div className="flex items-center justify-between mb-2">
-              <h5 className="font-medium text-gray-900">{comment.name}</h5>
-              <time className="text-sm text-gray-500">
-                {new Date(comment.createdAt).toLocaleDateString('pt-BR')}
-              </time>
-            </div>
-            <p className="text-gray-700 mb-2">{comment.content}</p>
-            <button
-              onClick={() => setReplyingTo(replyingTo === comment.id ? null : comment.id)}
-              className="text-sm text-green-600 hover:text-green-800"
-            >
-              Responder
-            </button>
-
-            {/* Formulário de resposta */}
-            {replyingTo === comment.id && (
-              <form
-                onSubmit={(e) => handleCommentSubmit(e, comment.id)}
-                className="mt-4 p-4 bg-gray-50 rounded"
-              >
-                <div className="space-y-3">
-                  <input
-                    type="text"
-                    placeholder="Seu nome"
-                    value={newComment.name}
-                    onChange={(e) =>
-                      setNewComment((prev) => ({ ...prev, name: e.target.value }))
-                    }
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-                    required
-                  />
-                  <textarea
-                    rows={3}
-                    placeholder="Sua resposta"
-                    value={newComment.content}
-                    onChange={(e) =>
-                      setNewComment((prev) => ({ ...prev, content: e.target.value }))
-                    }
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-                    required
-                  />
-                  <div className="flex space-x-2">
-                    <button
-                      type="submit"
-                      disabled={commentLoading}
-                      className="px-3 py-1 bg-green-600 text-white text-sm rounded hover:bg-green-700 disabled:opacity-50"
-                    >
-                      {commentLoading ? 'Enviando...' : 'Responder'}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setReplyingTo(null)}
-                      className="px-3 py-1 bg-gray-300 text-gray-700 text-sm rounded hover:bg-gray-400"
-                    >
-                      Cancelar
-                    </button>
-                  </div>
+          <div key={comment.id} className="border-b border-gray-200 pb-6">
+            <div className="flex items-start">
+              <div className="bg-gray-200 border-2 border-dashed rounded-xl w-10 h-10 mr-3" />
+              <div className="flex-1">
+                <div className="flex items-center mb-1">
+                  <h4 className="font-medium text-gray-900">{comment.name}</h4>
+                  <span className="mx-2 text-gray-400">•</span>
+                  <span className="text-sm text-gray-500">{formatDate(comment.createdAt)}</span>
                 </div>
-              </form>
-            )}
+                <p className="text-gray-700 mb-3">{comment.content}</p>
+                <button
+                  onClick={() => setReplyingTo(comment.id)}
+                  className="text-sm text-primary-900 hover:text-primary-800"
+                >
+                  Responder
+                </button>
 
-            {/* Respostas aninhadas */}
-            {comment.replies && comment.replies.length > 0 && (
-              <div className="ml-6 mt-4 space-y-4">
-                {comment.replies.map((reply: any) => (
-                  <div key={reply.id} className="border-l-2 border-gray-200 pl-3">
-                    <h6 className="font-medium text-gray-800">{reply.name}</h6>
-                    <p className="text-gray-600 text-sm">{reply.content}</p>
+                {/* Formulário de resposta */}
+                {replyingTo === comment.id && (
+                  <form
+                    onSubmit={(e) => handleCommentSubmit(e, comment.id)}
+                    className="mt-4 ml-6 bg-gray-50 p-4 rounded-md"
+                  >
+                    <div className="space-y-4">
+                      <div>
+                        <label htmlFor={`reply-name-${comment.id}`} className="block text-sm font-medium text-gray-700 mb-1">
+                          Nome
+                        </label>
+                        <input
+                          type="text"
+                          id={`reply-name-${comment.id}`}
+                          value={newComment.name}
+                          onChange={(e) => setNewComment({ ...newComment, name: e.target.value })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <label htmlFor={`reply-content-${comment.id}`} className="block text-sm font-medium text-gray-700 mb-1">
+                          Resposta
+                        </label>
+                        <textarea
+                          id={`reply-content-${comment.id}`}
+                          value={newComment.content}
+                          onChange={(e) => setNewComment({ ...newComment, content: e.target.value })}
+                          rows={3}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+                          required
+                        />
+                      </div>
+                      <div className="flex space-x-2">
+                        <button
+                          type="submit"
+                          disabled={commentLoading}
+                          className="px-4 py-2 bg-primary-900 text-white rounded-md hover:bg-primary-800 disabled:opacity-50"
+                        >
+                          {commentLoading ? 'Enviando...' : 'Responder'}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setReplyingTo(null)}
+                          className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300"
+                        >
+                          Cancelar
+                        </button>
+                      </div>
+                    </div>
+                  </form>
+                )}
+
+                {/* Respostas */}
+                {comment.replies && comment.replies.length > 0 && (
+                  <div className="mt-4 space-y-4 ml-6">
+                    {comment.replies.map((reply) => (
+                      <div key={reply.id} className="bg-gray-50 p-4 rounded-md">
+                        <div className="flex items-start">
+                          <div className="bg-gray-200 border-2 border-dashed rounded-xl w-8 h-8 mr-2" />
+                          <div className="flex-1">
+                            <div className="flex items-center mb-1">
+                              <h4 className="font-medium text-gray-900 text-sm">{reply.name}</h4>
+                              <span className="mx-2 text-gray-400">•</span>
+                              <span className="text-xs text-gray-500">{formatDate(reply.createdAt)}</span>
+                            </div>
+                            <p className="text-gray-700 text-sm">{reply.content}</p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                ))}
+                )}
               </div>
-            )}
+            </div>
           </div>
         ))}
       </div>
-    </section>
+    </div>
   );
 }
-
-

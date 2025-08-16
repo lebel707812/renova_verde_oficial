@@ -11,8 +11,6 @@ export default function robots(): MetadataRoute.Robots {
           '/admin/',
           '/api/',
           '/private/',
-          '/_next/',
-          '/static/',
         ],
       },
       {
@@ -20,14 +18,7 @@ export default function robots(): MetadataRoute.Robots {
         allow: '/',
         disallow: [
           '/admin/',
-          '/private/',
-        ],
-      },
-      {
-        userAgent: 'Bingbot',
-        allow: '/',
-        disallow: [
-          '/admin/',
+          '/api/',
           '/private/',
         ],
       },
@@ -36,4 +27,3 @@ export default function robots(): MetadataRoute.Robots {
     host: SITE_CONFIG.url,
   };
 }
-
