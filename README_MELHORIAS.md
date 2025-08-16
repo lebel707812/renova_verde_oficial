@@ -95,6 +95,31 @@ Este documento descreve as melhorias implementadas no sistema Renova Verde para 
 - `GET /api/sitemap` - Retorna XML do sitemap
 - `POST /api/sitemap` - Gera sitemap e retorna JSON com estatísticas
 
+## 7. Quizzes Interativos
+
+### Funcionalidade
+- **Arquivos**: 
+  - `src/app/quizzes/page.tsx` - Página principal de quizzes
+  - `src/app/quizzes/[id]/page.tsx` - Páginas individuais de quizzes
+  - `src/lib/quizzes.ts` - Dados e lógica dos quizzes
+  - `src/components/QuizComponent.tsx` - Componente principal de quizzes
+- Sistema de quizzes interativos para engajamento do usuário
+- Resultados personalizados com base nas respostas
+
+### Quizzes Disponíveis
+1. "Qual tipo de jardim é ideal para você?" - Recomendação personalizada de tipos de jardim
+2. "Descubra seu nível de sustentabilidade" - Avaliação do estilo de vida sustentável
+3. "Teste seus conhecimentos sobre compostagem" - Quiz educativo sobre compostagem
+
+## 8. Calendário Sazonal
+
+### Funcionalidade
+- **Arquivos**:
+  - `src/app/calendario-sazonal/page.tsx` - Página do calendário sazonal
+  - `src/lib/seasonalCalendar.ts` - Dados e lógica do calendário
+- Dicas e atividades recomendadas para cada estação do ano
+- Classificação por dificuldade e categoria
+
 ## Configurações Necessárias
 
 ### Variáveis de Ambiente
@@ -141,6 +166,7 @@ curl -X POST https://seudominio.com/api/cache/clear \
 3. **Melhor SEO**: Meta descriptions personalizadas para cada artigo
 4. **Atualização Automática**: Sitemap se atualiza automaticamente quando novos artigos são publicados
 5. **Melhor Performance**: Sistema de cache otimizado
+6. **Maior Engajamento**: Quizzes interativos e calendário sazonal para reter usuários
 
 ## Monitoramento
 
@@ -150,6 +176,7 @@ Para verificar se as melhorias estão funcionando:
 2. **Sitemap**: Acessar `/sitemap.xml` para ver todos os artigos
 3. **URLs**: Verificar se novos artigos têm URLs mais curtas
 4. **Meta Tags**: Inspecionar páginas para ver meta descriptions personalizadas
+5. **Analytics**: Monitorar tempo de permanência e páginas por sessão
 
 ## Próximos Passos
 
@@ -157,4 +184,4 @@ Para verificar se as melhorias estão funcionando:
 2. Atualizar artigos existentes com keywords e meta descriptions
 3. Monitorar indexação no Google Search Console
 4. Ajustar configurações conforme necessário
-
+5. Adicionar mais quizzes e atualizar o calendário sazonal com novas dicas

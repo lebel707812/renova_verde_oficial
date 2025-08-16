@@ -1,6 +1,7 @@
 import { MetadataRoute } from 'next';
 import { SITE_CONFIG } from '@/lib/constants';
 import { supabase } from '@/lib/supabase';
+import { quizzes } from '@/lib/quizzes';
 
 // Função auxiliar para tentar buscar artigos com retry
 async function fetchArticlesWithRetry(maxRetries = 3) {
@@ -104,6 +105,18 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: 'monthly' as const,
       priority: 0.7,
     },
+    {
+      url: `${baseUrl}/quizzes`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly' as const,
+      priority: 0.8,
+    },
+    {
+      url: `${baseUrl}/calendario-sazonal`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly' as const,
+      priority: 0.7,
+    },
   ];
 
   let articlePages: any[] = [];
@@ -148,9 +161,33 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.6,
   }));
 
+  // Páginas de quizzes
+  const quizPages = [
+    {
+      url: `${baseUrl}/quizzes`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly' as const,
+      priority: 0.7,
+    },
+    {
+      url: `${baseUrl}/calendario-sazonal`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly' as const,
+      priority: 0.7,
+    },
+    // Adicionar páginas individuais de quizzes
+    ...quizzes.map((quiz) => ({
+      url: `${baseUrl}/quizzes/${quiz.id}`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly' as const,
+      priority: 0.6,
+    }))
+  ];
+
   return [
     ...staticPages,
     ...categoryPages,
     ...articlePages,
+    ...quizPages,
   ];
 }

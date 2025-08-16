@@ -132,6 +132,12 @@ export default function Header() {
             <Link href="/artigos" className="text-gray-700 hover:text-primary-900 px-3 py-2 text-sm font-medium transition-colors duration-200">
               Artigos
             </Link>
+            <Link href="/quizzes" className="text-gray-700 hover:text-primary-900 px-3 py-2 text-sm font-medium transition-colors duration-200">
+              Quizzes
+            </Link>
+            <Link href="/calendario-sazonal" className="text-gray-700 hover:text-primary-900 px-3 py-2 text-sm font-medium transition-colors duration-200">
+              Calendário Sazonal
+            </Link>
             <Link href="/calculadora" className="text-gray-700 hover:text-primary-900 px-3 py-2 text-sm font-medium transition-colors duration-200">
               Calculadoras
             </Link>

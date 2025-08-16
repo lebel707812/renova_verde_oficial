@@ -76,3 +76,6 @@ export interface CommentsSectionProps {
   articleSlug: string;
   initialComments: Comment[];
 }
+
+// Tipos para quizzes
+export * from './quiz';
