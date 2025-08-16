@@ -6,6 +6,15 @@ export async function POST(request: NextRequest) {
   try {
     console.log('Upload API called');
     
+    // Verificar se o Supabase está configurado
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+      console.error('Supabase environment variables not configured');
+      return NextResponse.json(
+        { error: 'Configuração do servidor incompleta' },
+        { status: 500 }
+      );
+    }
+
     const formData = await request.formData();
     const file = formData.get('file') as File;
 
@@ -22,6 +31,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Apenas imagens são permitidas' }, { status: 400 });
     }
 
+    // Verificar tamanho do arquivo (máximo 10MB)
+    const maxSize = 10 * 1024 * 1024; // 10MB
+    if (file.size > maxSize) {
+      console.log('File too large:', file.size);
+      return NextResponse.json({ error: 'Arquivo muito grande. Máximo 10MB.' }, { status: 400 });
+    }
+
     console.log('File details:', {
       name: file.name,
       type: file.type,
@@ -29,33 +45,76 @@ export async function POST(request: NextRequest) {
     });
 
     // Converter e redimensionar a imagem para WebP
-    let imageBuffer = Buffer.from(await file.arrayBuffer());
+    let imageBuffer: Buffer;
     let convertedFilename = '';
     let convertedMimeType = '';
 
     try {
-      imageBuffer = await sharp(imageBuffer)
-        .resize({ width: 800, withoutEnlargement: true }) // Redimensionar para largura máxima de 800px
+      const originalBuffer = Buffer.from(await file.arrayBuffer());
+      
+      // Tentar converter para WebP
+      imageBuffer = await sharp(originalBuffer)
+        .resize({ width: 800, withoutEnlargement: true })
         .webp({ quality: 65 })
         .toBuffer();
+      
       convertedFilename = `${Date.now()}.webp`;
       convertedMimeType = 'image/webp';
-      console.log('Image converted to WebP');
+      console.log('Image converted to WebP successfully');
+      
     } catch (webpError) {
-      console.error('WebP conversion failed, using original file:', webpError);
-      // Se a conversão falhar, usar o arquivo original
-      convertedFilename = `${Date.now()}.${file.name.split('.').pop() || 'jpg'}`;
-      convertedMimeType = file.type;
-      console.log('Using original file due to conversion error.');
+      console.error('WebP conversion failed:', webpError);
+      
+      // Se a conversão falhar, usar o arquivo original redimensionado
+      try {
+        const originalBuffer = Buffer.from(await file.arrayBuffer());
+        imageBuffer = await sharp(originalBuffer)
+          .resize({ width: 800, withoutEnlargement: true })
+          .jpeg({ quality: 80 })
+          .toBuffer();
+        
+        convertedFilename = `${Date.now()}.jpg`;
+        convertedMimeType = 'image/jpeg';
+        console.log('Using JPEG format due to WebP conversion error');
+        
+      } catch (fallbackError) {
+        console.error('Image processing failed completely:', fallbackError);
+        return NextResponse.json(
+          { error: 'Erro ao processar a imagem' },
+          { status: 500 }
+        );
+      }
     }
 
     // Gerar nome único para o arquivo
     const filename = `articles/${convertedFilename}`;
-
     console.log('Generated filename:', filename);
 
     try {
-      // Fazer upload para o Supabase Storage usando o Buffer diretamente
+      // Testar conexão com Supabase primeiro
+      const { data: buckets, error: bucketsError } = await supabaseAdmin.storage.listBuckets();
+      
+      if (bucketsError) {
+        console.error('Supabase connection error:', bucketsError);
+        return NextResponse.json(
+          { error: 'Erro de conexão com o servidor de armazenamento' },
+          { status: 500 }
+        );
+      }
+
+      console.log('Supabase connection successful, buckets:', buckets?.map(b => b.name));
+
+      // Verificar se o bucket 'images' existe
+      const imagesBucket = buckets?.find(bucket => bucket.name === 'images');
+      if (!imagesBucket) {
+        console.error('Images bucket not found');
+        return NextResponse.json(
+          { error: 'Bucket de imagens não encontrado' },
+          { status: 500 }
+        );
+      }
+
+      // Fazer upload para o Supabase Storage
       const { data, error } = await supabaseAdmin.storage
         .from('images')
         .upload(filename, imageBuffer, { 
@@ -67,7 +126,7 @@ export async function POST(request: NextRequest) {
       if (error) {
         console.error('Supabase Storage upload error:', error);
         return NextResponse.json(
-          { error: `Erro ao fazer upload do arquivo: ${error.message}` },
+          { error: `Erro ao fazer upload: ${error.message}` },
           { status: 500 }
         );
       }
@@ -81,7 +140,7 @@ export async function POST(request: NextRequest) {
 
       console.log('Public URL data:', publicUrlData);
 
-      if (!publicUrlData || !publicUrlData.publicUrl) {
+      if (!publicUrlData?.publicUrl) {
         console.error('Failed to get public URL');
         return NextResponse.json(
           { error: 'Não foi possível obter a URL pública do arquivo' },
@@ -94,7 +153,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({
         success: true,
         url: publicUrlData.publicUrl,
+        filename: filename
       });
+
     } catch (uploadError) {
       console.error('Upload process error:', uploadError);
       return NextResponse.json(
@@ -102,6 +163,7 @@ export async function POST(request: NextRequest) {
         { status: 500 }
       );
     }
+
   } catch (error) {
     console.error('General upload error:', error);
     return NextResponse.json(
@@ -110,3 +172,4 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
