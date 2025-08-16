@@ -28,40 +28,25 @@ export async function POST(request: NextRequest) {
       size: file.size
     });
 
-    // Converter e redimensionar a imagem para WebP ou AVIF
+    // Converter e redimensionar a imagem para WebP
     let imageBuffer = Buffer.from(await file.arrayBuffer());
     let convertedFilename = '';
     let convertedMimeType = '';
-    let outputFormat = 'webp'; // Padrão para webp
 
-    // Tentar converter para AVIF primeiro, se suportado e mais eficiente
     try {
       imageBuffer = await sharp(imageBuffer)
         .resize({ width: 800, withoutEnlargement: true }) // Redimensionar para largura máxima de 800px
-        .avif({ quality: 60 })
+        .webp({ quality: 65 })
         .toBuffer();
-      convertedFilename = `${Date.now()}.avif`;
-      convertedMimeType = 'image/avif';
-      outputFormat = 'avif';
-      console.log('Image converted to AVIF');
-    } catch (avifError) {
-      console.warn('AVIF conversion failed, trying WebP:', avifError);
-      try {
-        imageBuffer = await sharp(imageBuffer)
-          .resize({ width: 800, withoutEnlargement: true }) // Redimensionar para largura máxima de 800px
-          .webp({ quality: 65 })
-          .toBuffer();
-        convertedFilename = `${Date.now()}.webp`;
-        convertedMimeType = 'image/webp';
-        outputFormat = 'webp';
-        console.log('Image converted to WebP');
-      } catch (webpError) {
-        console.error('WebP conversion failed, using original file:', webpError);
-        // Se a conversão falhar, usar o arquivo original
-        convertedFilename = `${Date.now()}.${file.name.split('.').pop() || 'jpg'}`;
-        convertedMimeType = file.type;
-        console.log('Using original file due to conversion error.');
-      }
+      convertedFilename = `${Date.now()}.webp`;
+      convertedMimeType = 'image/webp';
+      console.log('Image converted to WebP');
+    } catch (webpError) {
+      console.error('WebP conversion failed, using original file:', webpError);
+      // Se a conversão falhar, usar o arquivo original
+      convertedFilename = `${Date.now()}.${file.name.split('.').pop() || 'jpg'}`;
+      convertedMimeType = file.type;
+      console.log('Using original file due to conversion error.');
     }
 
     // Gerar nome único para o arquivo
@@ -125,5 +110,3 @@ export async function POST(request: NextRequest) {
     );
   }
 }
-
-
