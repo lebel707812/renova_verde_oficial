@@ -36,6 +36,7 @@ export default function ArticleForm({ article, isEditing = false }: ArticleFormP
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const [showPreview, setShowPreview] = useState(false);
   const [autoSaveStatus, setAutoSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
@@ -111,47 +112,107 @@ export default function ArticleForm({ article, isEditing = false }: ArticleFormP
     const file = e.target.files?.[0];
     if (!file) return;
 
+    console.log('=== INICIANDO UPLOAD DE IMAGEM ===');
+    console.log('Arquivo selecionado:', {
+      name: file.name,
+      type: file.type,
+      size: file.size
+    });
+
     setIsUploading(true);
     setError('');
+    setUploadProgress(0);
+
+    // Validações no frontend
+    if (!file.type.startsWith('image/')) {
+      console.error('❌ Tipo de arquivo inválido:', file.type);
+      setError('Apenas imagens são permitidas');
+      setIsUploading(false);
+      return;
+    }
+
+    const maxSize = 10 * 1024 * 1024; // 10MB
+    if (file.size > maxSize) {
+      console.error('❌ Arquivo muito grande:', file.size);
+      setError('Arquivo muito grande. Máximo 10MB.');
+      setIsUploading(false);
+      return;
+    }
 
     try {
-      console.log('Starting image upload:', file.name, file.type, file.size);
-      
+      console.log('Criando FormData...');
       const formData = new FormData();
       formData.append('file', file);
+      console.log('✅ FormData criado');
 
+      setUploadProgress(25);
+
+      console.log('Enviando requisição para /api/upload...');
       const response = await fetch('/api/upload', {
         method: 'POST',
         body: formData,
       });
 
-      console.log('Upload response status:', response.status);
-      
+      setUploadProgress(75);
+
+      console.log('Resposta recebida:', {
+        status: response.status,
+        statusText: response.statusText,
+        headers: Object.fromEntries(response.headers.entries())
+      });
+
       // Verificar se a resposta é JSON válida
       const contentType = response.headers.get('content-type');
+      console.log('Content-Type da resposta:', contentType);
+
       if (!contentType || !contentType.includes('application/json')) {
-        console.error('Response is not JSON:', contentType);
-        const text = await response.text();
-        console.error('Response text:', text);
-        setError('Erro no servidor: resposta inválida');
+        console.error('❌ Resposta não é JSON válido');
+        const textResponse = await response.text();
+        console.error('Resposta em texto:', textResponse);
+        setError(`Erro no servidor: resposta inválida (${response.status}). Detalhes: ${textResponse.substring(0, 200)}...`);
         return;
       }
 
-      const data = await response.json();
-      console.log('Upload response data:', data);
+      let data;
+      try {
+        data = await response.json();
+        console.log('Dados da resposta:', data);
+      } catch (jsonError) {
+        console.error('❌ Erro ao fazer parse do JSON:', jsonError);
+        const textResponse = await response.text();
+        console.error('Resposta em texto:', textResponse);
+        setError('Erro ao processar resposta do servidor');
+        return;
+      }
+
+      setUploadProgress(100);
 
       if (response.ok && data.success && data.url) {
+        console.log('✅ Upload realizado com sucesso!');
+        console.log('URL da imagem:', data.url);
+        
         setFormData(prev => ({ ...prev, imageUrl: data.url }));
-        console.log('Image uploaded successfully:', data.url);
+        setError('');
+        
+        // Mostrar mensagem de sucesso temporária
+        setTimeout(() => {
+          setUploadProgress(0);
+        }, 1000);
+        
+        console.log('=== UPLOAD DE IMAGEM CONCLUÍDO COM SUCESSO ===');
       } else {
-        console.error('Upload failed:', data);
-        setError(data.error || 'Erro ao fazer upload da imagem');
+        console.error('❌ Upload falhou:', data);
+        setError(data.error || 'Erro desconhecido no upload');
       }
-    } catch (error) {
-      console.error('Upload error:', error);
-      setError('Erro ao fazer upload da imagem: ' + (error as Error).message);
+
+    } catch (networkError) {
+      console.error('❌ Erro de rede no upload:', networkError);
+      setError('Erro de conexão. Verifique sua internet e tente novamente.');
     } finally {
       setIsUploading(false);
+      if (uploadProgress !== 100) {
+        setUploadProgress(0);
+      }
     }
   };
 
@@ -229,7 +290,7 @@ export default function ArticleForm({ article, isEditing = false }: ArticleFormP
 
         {error && (
           <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-md">
-            <p className="text-red-600">{error}</p>
+            <p className="text-red-600 text-sm">{error}</p>
           </div>
         )}
 
@@ -326,15 +387,17 @@ export default function ArticleForm({ article, isEditing = false }: ArticleFormP
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Imagem de Destaque
             </label>
+            
             <div className="flex items-center space-x-4">
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
                 disabled={isUploading}
-                className="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 disabled:opacity-50"
+                className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isUploading ? 'Enviando...' : 'Escolher Imagem'}
               </button>
+              
               <input
                 ref={fileInputRef}
                 type="file"
@@ -342,17 +405,41 @@ export default function ArticleForm({ article, isEditing = false }: ArticleFormP
                 onChange={handleImageUpload}
                 className="hidden"
               />
+              
+              {isUploading && (
+                <div className="flex items-center space-x-2">
+                  <div className="w-32 bg-gray-200 rounded-full h-2">
+                    <div 
+                      className="bg-green-600 h-2 rounded-full transition-all duration-300"
+                      style={{ width: `${uploadProgress}%` }}
+                    ></div>
+                  </div>
+                  <span className="text-sm text-gray-600">{uploadProgress}%</span>
+                </div>
+              )}
             </div>
             
             {formData.imageUrl && (
               <div className="mt-4">
-                <Image
-                  src={formData.imageUrl}
-                  alt="Preview"
-                  width={200}
-                  height={120}
-                  className="rounded-md object-cover"
-                />
+                <div className="relative inline-block">
+                  <Image
+                    src={formData.imageUrl}
+                    alt="Preview da imagem"
+                    width={200}
+                    height={120}
+                    className="rounded-md object-cover border border-gray-200"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setFormData(prev => ({ ...prev, imageUrl: '' }))}
+                    className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600"
+                  >
+                    ×
+                  </button>
+                </div>
+                <p className="text-xs text-gray-500 mt-1">
+                  Clique no × para remover a imagem
+                </p>
               </div>
             )}
           </div>
