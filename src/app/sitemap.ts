@@ -1,16 +1,30 @@
 import { MetadataRoute } from 'next';
 import { SITE_CONFIG } from '@/lib/constants';
-import { createClient } from '@supabase/supabase-js';
+import { supabase } from '@/lib/supabase';
 
-// Verificar se as variáveis de ambiente estão definidas
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+// Função auxiliar para tentar buscar artigos com retry
+async function fetchArticlesWithRetry(maxRetries = 3) {
+  for (let i = 0; i < maxRetries; i++) {
+    try {
+      const { data: articles, error } = await supabase
+        .from('articles')
+        .select('slug, updatedAt, title, excerpt, imageUrl')
+        .eq('isPublished', true)
+        .limit(1000); // Limitar para evitar problemas de performance
 
-let supabase: any = null;
+      if (error) {
+        console.warn(`Attempt ${i + 1} failed:`, error);
+        if (i === maxRetries - 1) throw error; // Lançar erro na última tentativa
+        continue;
+      }
 
-// Só criar o cliente Supabase se as variáveis estiverem definidas
-if (supabaseUrl && supabaseAnonKey) {
-  supabase = createClient(supabaseUrl, supabaseAnonKey);
+      return articles || [];
+    } catch (error) {
+      console.warn(`Attempt ${i + 1} failed with exception:`, error);
+      if (i === maxRetries - 1) throw error; // Lançar erro na última tentativa
+    }
+  }
+  return [];
 }
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
@@ -55,7 +69,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.9,
     },
     {
-      url: `${baseUrl}/categorias`,
+      url: `${baseUrl}/categoria`,
       lastModified: new Date(),
       changeFrequency: 'weekly' as const,
       priority: 0.8,
@@ -94,45 +108,41 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   let articlePages: any[] = [];
 
-  // Só tentar buscar artigos se o Supabase estiver configurado
-  if (supabase) {
-    try {
-      const { data: articles, error } = await supabase
-        .from('articles')
-        .select('slug, updatedAt')
-        .eq('isPublished', true);
-
-      if (!error && articles) {
-        articlePages = articles
-          .filter((article: any) => article.slug) // Garantir que o slug existe
-          .map((article: any) => ({
-            url: `${baseUrl}/artigos/${article.slug}`,
-            lastModified: new Date(article.updatedAt || new Date()),
-            changeFrequency: 'weekly' as const,
-            priority: 0.7,
-          }));
-      } else {
-        console.warn('Error fetching articles for sitemap:', error);
-      }
-    } catch (error) {
-      console.warn('Failed to fetch articles for sitemap:', error);
-    }
+  try {
+    const articles = await fetchArticlesWithRetry();
+    
+    articlePages = articles
+      .filter((article: any) => article.slug) // Garantir que o slug existe
+      .map((article: any) => ({
+        url: `${baseUrl}/artigos/${article.slug}`,
+        lastModified: new Date(article.updatedAt || new Date()),
+        changeFrequency: 'weekly' as const,
+        priority: 0.7,
+        // Adicionar informações adicionais para SEO
+        images: article.imageUrl ? [
+          {
+            loc: article.imageUrl,
+            title: article.title,
+            caption: article.excerpt,
+          }
+        ] : undefined,
+      }));
+  } catch (error) {
+    console.error('Failed to fetch articles for sitemap after retries:', error);
+    // Continuar com sitemap vazio para artigos em caso de erro
   }
 
-  // Páginas de categorias estáticas
+  // Páginas de categorias estáticas (corrigidas para corresponder às rotas reais)
   const categories = [
-    'jardinagem',
-    'energia-renovavel', 
-    'reformas-ecologicas',
-    'reciclagem',
-    'economia-domestica',
-    'compostagem',
-    'sustentabilidade',
-    'economia-de-agua'
+    'Jardinagem',
+    'Energia Renovável', 
+    'Reforma Ecológica',
+    'Compostagem',
+    'Economia de Água'
   ];
 
   const categoryPages = categories.map((category) => ({
-    url: `${baseUrl}/categoria/${category}`,
+    url: `${baseUrl}/categoria/${encodeURIComponent(category.toLowerCase().replace(/\s+/g, '-'))}`,
     lastModified: new Date(),
     changeFrequency: 'weekly' as const,
     priority: 0.6,
@@ -144,5 +154,3 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...articlePages,
   ];
 }
-
-

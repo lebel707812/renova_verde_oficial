@@ -36,64 +36,31 @@ export async function GET(request: NextRequest) {
       articlesQuery = articlesQuery.eq('category', category);
     }
 
-    const { data: articles, error: articlesError } = await articlesQuery
+    const { data: articles, error, count } = await articlesQuery
       .order('createdAt', { ascending: false })
       .range(offset, offset + limit - 1);
 
-    if (articlesError) {
-      console.error('Error searching articles:', articlesError);
-      return NextResponse.json(
-        { error: 'Erro ao buscar artigos' },
-        { status: 500 }
-      );
+    if (error) {
+      throw error;
     }
-
-    // Para obter o total de artigos, faremos uma segunda consulta com count
-    let countQuery = supabase
-      .from('articles')
-      .select('count', { count: 'exact' })
-      .eq('isPublished', true);
-
-    if (query) {
-      countQuery = countQuery.or(
-        `title.ilike.%${query}%,content.ilike.%${query}%,excerpt.ilike.%${query}%`
-      );
-    }
-
-    if (category) {
-      countQuery = countQuery.eq('category', category);
-    }
-
-    const { count: totalCount, error: countError } = await countQuery;
-
-    if (countError) {
-      console.error('Error counting articles:', countError);
-      return NextResponse.json(
-        { error: 'Erro ao contar artigos' },
-        { status: 500 }
-      );
-    }
-
-    const totalPages = Math.ceil((totalCount || 0) / limit);
 
     return NextResponse.json({
-      articles,
+      articles: articles || [],
       pagination: {
-        currentPage: page,
-        totalPages,
-        totalCount: totalCount || 0,
-        hasNextPage: page < totalPages,
-        hasPreviousPage: page > 1,
-      },
-      query: query || '',
-      category: category || '',
+        page,
+        limit,
+        total: count || 0,
+        totalPages: Math.ceil((count || 0) / limit)
+      }
     });
   } catch (error) {
     console.error('Error searching articles:', error);
     return NextResponse.json(
-      { error: 'Erro ao buscar artigos' },
+      { 
+        error: 'Erro ao buscar artigos',
+        details: error instanceof Error ? error.message : null
+      },
       { status: 500 }
     );
   }
 }
-
