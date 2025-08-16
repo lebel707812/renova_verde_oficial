@@ -2,6 +2,7 @@ import QuizCard from '@/components/QuizCard';
 import { quizzes } from '@/lib/quizzes';
 import { SITE_CONFIG } from '@/lib/constants';
 import SEOEnhanced from '@/components/SEOEnhanced';
+import MainLayout from '@/components/layout/MainLayout';
 
 export default function QuizzesPage() {
   // Group quizzes by category
@@ -14,7 +15,7 @@ export default function QuizzesPage() {
   }, {} as Record<string, typeof quizzes>);
 
   return (
-    <>
+    <MainLayout>
       <SEOEnhanced
         title="Quizzes Interativos - Teste seus conhecimentos"
         description="Descubra que tipo de jardim é ideal para você, veja seu nível de sustentabilidade e teste seus conhecimentos sobre compostagem com nossos quizzes interativos."
@@ -67,6 +68,6 @@ export default function QuizzesPage() {
           </div>
         </div>
       </div>
-    </>
+    </MainLayout>
   );
 }

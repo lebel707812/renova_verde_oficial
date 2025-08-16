@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { seasons, getCurrentSeason } from '@/lib/seasonalCalendar';
 import SEOEnhanced from '@/components/SEOEnhanced';
+import MainLayout from '@/components/layout/MainLayout';
 
 interface SeasonalTip {
   id: number;
@@ -38,7 +39,7 @@ export default function SeasonalCalendarPage() {
   };
 
   return (
-    <>
+    <MainLayout>
       <SEOEnhanced
         title="Calendário Sazonal de Atividades Sustentáveis"
         description="Descubra as melhores atividades e projetos para cada estação do ano. Mantenha seu jardim e casa sustentáveis o ano todo com nosso calendário sazonal."
@@ -155,6 +156,6 @@ export default function SeasonalCalendarPage() {
           </div>
         </div>
       </div>
-    </>
+    </MainLayout>
   );
 }

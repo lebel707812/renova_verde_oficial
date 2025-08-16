@@ -133,7 +133,7 @@ export default function Header() {
               Artigos
             </Link>
             <Link href="/quizzes" className="text-gray-700 hover:text-primary-900 px-3 py-2 text-sm font-medium transition-colors duration-200">
-              Quizzes
+              Quiz
             </Link>
             <Link href="/calendario-sazonal" className="text-gray-700 hover:text-primary-900 px-3 py-2 text-sm font-medium transition-colors duration-200">
               Calendário Sazonal
@@ -199,6 +199,20 @@ export default function Header() {
                 onClick={() => setIsMenuOpen(false)}
               >
                 Artigos
+              </Link>
+              <Link
+                href="/quizzes"
+                className="text-gray-700 hover:text-primary-900 hover:bg-gray-50 block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Quiz
+              </Link>
+              <Link
+                href="/calendario-sazonal"
+                className="text-gray-700 hover:text-primary-900 hover:bg-gray-50 block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Calendário Sazonal
               </Link>
               <Link
                 href="/calculadora"

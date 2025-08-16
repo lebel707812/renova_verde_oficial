@@ -3,6 +3,7 @@ import QuizComponent from '@/components/QuizComponent';
 import { notFound } from 'next/navigation';
 import SEOEnhanced from '@/components/SEOEnhanced';
 import { generateStaticParams } from './generateStaticParams';
+import MainLayout from '@/components/layout/MainLayout';
 
 export async function generateMetadata({ params }: { params: { id: string } }) {
   const quiz = quizzes.find(q => q.id === params.id);
@@ -27,7 +28,7 @@ export default function QuizPage({ params }: { params: { id: string } }) {
   }
 
   return (
-    <>
+    <MainLayout>
       <SEOEnhanced
         title={`${quiz?.title} - Quiz Interativo`}
         description={quiz?.description}
@@ -35,7 +36,7 @@ export default function QuizPage({ params }: { params: { id: string } }) {
         type="website"
       />
       <QuizComponent quizId={params.id} />
-    </>
+    </MainLayout>
   );
 }
 
